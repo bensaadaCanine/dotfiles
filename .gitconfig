@@ -1,0 +1,51 @@
+[user]
+	name = Ben Saada
+	email = bensaada12@gmail.com
+[core]
+	autocrlf = input
+  pager        = diff-so-fancy | less --tabs=4 -RFX
+
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+
+[interactive]
+  diffFilter = diff-so-fancy --patch
+
+[color]
+  branch      = true
+  decorate    = true
+  diff        = true
+  grep        = true
+  interactive = true
+  pager       = true
+  showbranch  = true
+  status      = true
+  ui          = true
+
+[color "diff-highlight"]
+  oldNormal    = red   bold
+  oldHighlight = red   bold 52
+  newNormal    = green bold
+  newHighlight = green bold 22
+
+[color "diff"]
+  meta       = 11
+  frag       = magenta bold
+  func       = 146     bold
+  commit     = yellow  bold
+  old        = red     bold
+  new        = green   bold
+  whitespace = red     reverse
+
+[color "status"]
+  added     = green
+  changed   = red     bold
+  untracked = magenta bold
+
+[color "branch"]
+  remote = yellow
+[pull]
+	rebase = false
