@@ -9,7 +9,7 @@ local has_words_before = function()
 end
 
 local cmp_mappings = {
-  ['<C-Space>'] = cmp.mapping.complete(),
+  ['<M-Space>'] = cmp.mapping.complete(),
   ['<C-b>'] = cmp.mapping.scroll_docs(-4),
   ['<C-e>'] = cmp.mapping.abort(),
   ['<C-f>'] = cmp.mapping.scroll_docs(4),

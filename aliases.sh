@@ -34,15 +34,27 @@ function mwatch() {
   echo $final_alias
   watch --color "$final_alias"
 }
-function docke () { [[ $1 == "r"* ]] && docker ${1#r} }
-function ssh2 () { in_url=`sed -e 's/ip-//' -e 's/-/./g' <<< "$1" ` ; echo $in_url && ssh $in_url }
-function jsonlint () { pbcopy && open https://jsonlint.com/ }
-function grl () { grep -rl $* . }
+function docke () {
+  [[ $1 == "r"* ]] && docker ${1#r}
+}
+function ssh2 () {
+  in_url=`sed -e 's/ip-//' -e 's/-/./g' <<< "$1" ` ; echo $in_url && ssh $in_url
+}
+function jsonlint () {
+  pbcopy && open https://jsonlint.com/
+}
+function grl () {
+  grep -rl $* .
+}
 ### Git functions ###
 ### AWS functions ###
-function gparamsp () { aws ssm get-parameters-by-path --path "$1" --region $2 --with-decryption | jq ".[][]|[.Name,.Value]" }
+function gparamsp () {
+  aws ssm get-parameters-by-path --path "$1" --region $2 --with-decryption | jq ".[][]|[.Name,.Value]"
+}
 # Open the github page of the repo you're in, in the browser
-function opengit () { git remote -v | awk 'NR==1{print $2}' | sed -e "s?:?/?g" -e 's?\.git$??' -e "s?git@?https://?" -e "s?https///?https://?g" | xargs open }
+function opengit () {
+  git remote -v | awk 'NR==1{print $2}' | sed -e "s?:?/?g" -e 's?\.git$??' -e "s?git@?https://?" -e "s?https///?https://?g" | xargs open
+}
 # Create pull request = cpr
 function cpr() {
   git_remote=$(git remote -v | head -1)
