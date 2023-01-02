@@ -1,4 +1,3 @@
-
 export ZSH="/Users/bsaada/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
@@ -57,7 +56,7 @@ alias tg=terragrunt
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 alias ssv="/usr/local/bin/ssv.sh awsjump"
 alias ssvd="/usr/local/bin/ssv.sh devjump"
-alias tgrmtrace="rm -f aws-provider.tf backend.tf terragrunt_variables.tf versions.tf .terraform.lock.hcl"
+alias tgrmtrace="rm -f aws-provider.tf backend.tf terragrunt_variables.tf versions.tf"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
