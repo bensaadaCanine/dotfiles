@@ -49,7 +49,8 @@ function grl () {
 ### Git functions ###
 ### AWS functions ###
 function gparamsp () {
-  aws ssm get-parameters-by-path --path "$1" --region $2 --with-decryption | jq ".[][]|[.Name,.Value]"
+    parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
+    aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
 }
 # Open the github page of the repo you're in, in the browser
 function opengit () {
