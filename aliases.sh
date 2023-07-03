@@ -47,11 +47,6 @@ function grl () {
   grep -rl $* .
 }
 ### Git functions ###
-### AWS functions ###
-function gparamsp () {
-    parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
-    aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
-}
 # Open the github page of the repo you're in, in the browser
 function opengit () {
   git remote -v | awk 'NR==1{print $2}' | sed -e "s?:?/?g" -e 's?\.git$??' -e "s?git@?https://?" -e "s?https///?https://?g" | xargs open
@@ -70,6 +65,25 @@ function cpr() {
   fi
   open "https://${git_name}.com/${project_name}/${repo_name}/${pr_link}${branch_name}"
 }
+
+### AWS functions ###
+function gparamsp () {
+    parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
+    aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
+}
+
+### Azure functions ###
+# Access to the right context of Azure
+function azure-prod() {
+  az account set --name 'Spot Production'
+  az config set defaults.group=spotinst-production --local
+}
+
+function azure-dev() {
+  az account set --name 'Spot Dev'
+  az config set defaults.group=spotinst-dev --local
+}
+
 ### Kubernetes functions ###
 function kdpw () { watch "kubectl describe po $* | tail -20" }
 function kgres() {
