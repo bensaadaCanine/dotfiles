@@ -68,4 +68,4 @@ source ~/aliases.sh
 export EDITOR=nvim
 export AWS_PROFILE=dev
 source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
-RPS1='[%B%F{green}AWS%f:%F{red}${AWS_PROFILE}%b%f] [%B%F{blue}Azure%f:%F{red}$(az account show | jq '.name' -r)%b%f] $(kube_ps1)'
+RPS1="[%B%F{green}AWS%f:%F{red}\${AWS_PROFILE}%b%f] [%B%F{blue}Azure%f:%F{red}\$(az account show | jq '.name' -r | awk '{print \$2}')%b%f] \$(kube_ps1)"
