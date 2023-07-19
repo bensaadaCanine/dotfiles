@@ -37,6 +37,7 @@ function mwatch() {
 function docke () {
   [[ $1 == "r"* ]] && docker ${1#r}
 }
+
 function ssh2 () {
   in_url=`sed -e 's/ip-//' -e 's/-/./g' <<< "$1" ` ; echo $in_url && ssh $in_url
 }
@@ -142,6 +143,10 @@ function get_pods_of_svc() {
   shift
   label_selectors=$(kubectl get svc $svc_name $* -ojsonpath="{.spec.selector}" | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" | paste -s -d "," -)
   kubectl get pod $* -l $label_selectors
+}
+
+function rmpods() {
+  for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i ;done
 }
 ### General aliases ###
 alias watch='watch --color '
