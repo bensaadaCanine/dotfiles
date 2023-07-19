@@ -1,4 +1,6 @@
 export ZSH="/Users/bsaada/.oh-my-zsh"
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
 
 ZSH_THEME="robbyrussell"
 
@@ -44,28 +46,17 @@ source $ZSH/oh-my-zsh.sh
 # =================== #
 # Completions and PS1 #
 # =================== #
-
-alias brave='open -a "Brave Browser"'
-alias spotify='open -a "Spotify"'
-alias outlook='open -a "Microsoft Outlook"'
-alias slack='open -a "Slack"'
-alias sublime='open -a "Sublime Text"'
-alias zoom='open -a "zoom.us"'
-alias tg=terragrunt
-
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-alias ssv="/usr/local/bin/ssv.sh awsjump"
-alias ssvd="/usr/local/bin/ssv.sh devjump"
-alias tgrmtrace="rm -f aws-provider.tf backend.tf terragrunt_variables.tf versions.tf"
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-alias repos="cd ~/github"
-alias watch='watch '
 
 source ~/aliases.sh
 export EDITOR=nvim
 export AWS_PROFILE=dev
 source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
 RPS1="[%B%F{green}AWS%f:%F{red}\${AWS_PROFILE}%b%f] [%B%F{blue}Azure%f:%F{red}\$(az account show | jq '.name' -r | awk '{print \$2}')%b%f] \$(kube_ps1)"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion

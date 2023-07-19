@@ -173,6 +173,7 @@ alias gb='git for-each-ref --sort=-committerdate --format="%(refname:short)" | g
 alias gp="git push --set-upstream origin HEAD"
 alias gml="git checkout master && git pull"
 alias gdl="git checkout develop && git pull"
+alias repos="cd ~/github"
 alias services="repos && cd services"
 ### Shortcuts to directories ###
 alias difff='code --diff'
@@ -211,6 +212,16 @@ alias kdsts='kubectl describe statefulsets'
 alias kests='kubectl edit statefulsets'
 alias kdelsts='kubectl delete statefulsets'
 # Common Used tools:
+alias brave='open -a "Brave Browser"'
+alias spotify='open -a "Spotify"'
+alias outlook='open -a "Microsoft Outlook"'
+alias slack='open -a "Slack"'
+alias sublime='open -a "Sublime Text"'
+alias zoom='open -a "zoom.us"'
+alias ssv="/usr/local/bin/ssv.sh awsjump"
+alias ssvd="/usr/local/bin/ssv.sh devjump"
+alias watch='watch '
+alias tgrmtrace="rm -f aws-provider.tf backend.tf terragrunt_variables.tf versions.tf"
 alias tf='terraform'
 alias tg='terragrunt'
 alias awsdev='export AWS_PROFILE=dev'
