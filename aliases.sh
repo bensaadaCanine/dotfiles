@@ -93,6 +93,10 @@ function kgres() {
     -u \
     -k1,1 | column -t
   }
+
+function kgpimg() {
+    kgp $* -ojson | jq '.spec.containers[].image'
+}
 function kubedebug () {
   # image=gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
   local image=mosheavni/net-debug:latest
