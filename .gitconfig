@@ -1,18 +1,49 @@
 [user]
-	name = Ben Saada
-	email = bensaada12@gmail.com
-[core]
-	autocrlf = input
-  pager        = diff-so-fancy | less --tabs=4 -RFX
+  name = Ben Saada
+  email = bensaada12@gmail.com
 
-[filter "lfs"]
-	process = git-lfs filter-process
-	required = true
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
+[core]
+  excludesfile = ~/.gitignore_global
+  pager        = delta
+  editor       = vim
+
+[commit]
+  gpgsign = false
+
+[checkout]
+  defaultRemote = origin
+
+[pull]
+  rebase = false
+
+[help]
+  autocorrect = 1
+
+[branch]
+  autosetupmerge = always
+
+[alias]
+  log  = log --pretty=log
+  lb   = log --graph --simplify-by-decoration --pretty=shorter --all --notes --date-order --relative-date
+  adog = log --all --decorate --oneline --graph
+
+[init]
+  defaultBranch = master
 
 [interactive]
-  diffFilter = diff-so-fancy --patch
+  diffFilter = delta --color-only
+
+[delta]
+  navigate     = true  # use n and N to move between diff sections
+  line-numbers = true
+  light        = false # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
+  side-by-side = true
+
+[merge]
+  conflictstyle = diff3
+
+[diff]
+  colorMoved = default
 
 [color]
   branch      = true
@@ -47,5 +78,3 @@
 
 [color "branch"]
   remote = yellow
-[pull]
-	rebase = false
