@@ -75,12 +75,12 @@ function gparamsp () {
 
 ### Azure functions ###
 # Access to the right context of Azure
-function azure-prod() {
+function azureprod() {
   az account set --name 'Spot Production'
   az config set defaults.group=spotinst-production --local
 }
 
-function azure-dev() {
+function azuredev() {
   az account set --name 'Spot Dev'
   az config set defaults.group=spotinst-dev --local
 }
@@ -152,6 +152,15 @@ function get_pods_of_svc() {
 function rmpods() {
   for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i ;done
 }
+
+fdf() {
+  # remove trailing / from $1
+  dir_clean=${1%/}
+  all_files=$(find $dir_clean/* -maxdepth 0 -type d -print 2> /dev/null)
+  dir_to_enter=$(sed "s?$dir_clean/??g" <<< $all_files | fzf)
+  cd "$dir_clean/$dir_to_enter" && nvim
+}
+alias pj='fdf ~/github'
 ### General aliases ###
 alias watch='watch --color '
 alias vim="nvim"
@@ -180,8 +189,7 @@ alias -g RC='--sort-by=".status.containerStatuses[0].restartCount" -A | grep -v 
 # alias gb="git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads | fzf | xargs git checkout && git pull"
 alias gb='git for-each-ref --sort=-committerdate --format="%(refname:short)" | grep -n . | sed "s?origin/??g" | sort -t: -k2 -u | sort -n | cut -d: -f2 | fzf | xargs git checkout'
 alias gp="git push --set-upstream origin HEAD"
-alias gml="git checkout master && git pull"
-alias gdl="git checkout develop && git pull"
+alias gml="git checkout \$(git symbolic-ref refs/remotes/origin/HEAD | tr \"/\" \" \" | awk '{print \$4}') && git pull"
 alias repos="cd ~/github"
 alias services="repos && cd services"
 ### Shortcuts to directories ###

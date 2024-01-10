@@ -4,9 +4,7 @@ local augroup = utils.augroup
 local nnoremap = utils.nnoremap
 local fn = vim.fn
 local cmd = vim.cmd
-local api = vim.api
 
--- Auto reload file
 local reload_file_group = augroup 'ReloadFile'
 autocmd({ 'FocusGained', 'BufEnter' }, {
   desc = 'Auto load file changes when focus or buffer is entered',
@@ -15,7 +13,6 @@ autocmd({ 'FocusGained', 'BufEnter' }, {
   command = 'if &buftype == "nofile" | checktime | endif',
 })
 
--- Actions when the file is changed outside of Neovim
 autocmd('FileChangedShellPost', {
   desc = 'Actions when the file is changed outside of Neovim',
   group = reload_file_group,
@@ -24,7 +21,6 @@ autocmd('FileChangedShellPost', {
   end,
 })
 
--- Print the output of flag --startuptime startuptime.txt
 local first_load = augroup 'first_load'
 autocmd('UIEnter', {
   desc = 'Print the output of flag --startuptime startuptime.txt',
@@ -33,8 +29,24 @@ autocmd('UIEnter', {
   once = true,
   callback = function()
     vim.defer_fn(function()
-      return vim.fn.filereadable 'startuptime.txt' == 1 and vim.cmd ':!tail -n3 startuptime.txt' and vim.fn.delete 'startuptime.txt'
-    end, 1000)
+      if vim.fn.filereadable 'startuptime.txt' == 1 then
+        local tail = vim.fn.system { 'tail', '-n3', 'startuptime.txt' }
+        ---@diagnostic disable-next-line: param-type-mismatch
+        vim.notify(tail)
+        return vim.fn.delete 'startuptime.txt'
+      else
+        return false
+      end
+    end, 1500)
+  end,
+})
+
+autocmd('User', {
+  desc = 'Setup non-critical stuff after lazy has loaded',
+  group = first_load,
+  pattern = 'VeryLazy',
+  callback = function()
+    require('user.menu').setup()
   end,
 })
 
@@ -55,18 +67,36 @@ autocmd('FileType', {
     nnoremap('q', '<CMD>close<CR>', { buffer = 0 })
   end,
 })
-autocmd('BufEnter', {
-  pattern = { '*' },
+autocmd('FileType', {
+  pattern = 'cmp_docs',
   group = buffer_settings,
+  callback = function()
+    vim.treesitter.start(0, 'markdown')
+  end,
+})
+autocmd('BufEnter', {
+  group = buffer_settings,
+  pattern = { '*' },
   command = 'normal zx',
 })
 
--- Highlight on yank
 autocmd('TextYankPost', {
   desc = 'Highlight on yank',
   group = buffer_settings,
   callback = function()
-    pcall(vim.highlight.on_yank, { higroup = 'IncSearch', timeout = 700 })
+    pcall(vim.highlight.on_yank, { higroup = 'IncSearch', timeout = 200 })
+  end,
+})
+
+vim.api.nvim_create_autocmd('BufReadPost', {
+  desc = 'go to last loc when opening a buffer',
+  group = buffer_settings,
+  callback = function()
+    local mark = vim.api.nvim_buf_get_mark(0, '"')
+    local lcount = vim.api.nvim_buf_line_count(0)
+    if mark[1] > 0 and mark[1] <= lcount then
+      pcall(vim.api.nvim_win_set_cursor, 0, mark)
+    end
   end,
 })
 
@@ -77,25 +107,10 @@ autocmd({ 'FileType' }, {
   pattern = 'json',
   command = 'syntax match Comment +\\/\\/.\\+$+',
 })
-autocmd({ 'BufNewFile', 'BufRead' }, {
-  group = special_filetypes,
-  pattern = 'aliases.sh',
-  command = 'setf zsh',
-})
-autocmd({ 'BufNewFile', 'BufRead' }, {
-  group = special_filetypes,
-  pattern = '.eslintrc',
-  command = 'setf json',
-})
-autocmd({ 'BufRead', 'BufNewFile' }, {
-  group = special_filetypes,
-  pattern = { '*/templates/*.yaml', '*/templates/*.tpl', '*.gotmpl', 'helmfile.yaml' },
-  command = 'set ft=helm',
-})
 autocmd({ 'FileType' }, {
   group = special_filetypes,
   pattern = 'javascript',
-  command = 'set filetype=javascriptreact | set iskeyword+=-',
+  command = 'set iskeyword+=-',
 })
 autocmd({ 'FileType' }, {
   group = special_filetypes,
@@ -104,40 +119,26 @@ autocmd({ 'FileType' }, {
 })
 autocmd({ 'BufRead' }, {
   group = special_filetypes,
-  pattern = '*/plugins/init.lua',
+  pattern = '*/plugins/*.lua',
   command = 'lua require("user.open-url").setup()',
-})
-
--- Last position on Document
-local last_position = augroup 'LastPosition'
-autocmd({ 'BufReadPost' }, {
-  group = last_position,
-  callback = function()
-    local test_line_data = api.nvim_buf_get_mark(0, '"')
-    local test_line = test_line_data[1]
-    local last_line = api.nvim_buf_line_count(0)
-
-    if test_line > 0 and test_line <= last_line then
-      api.nvim_win_set_cursor(0, test_line_data)
-    end
-  end,
 })
 
 -- Quickfix
 local quickfix_au = augroup 'QuickFix'
 autocmd({ 'QuickFixCmdPost' }, {
+  desc = 'Open location window on location action',
   group = quickfix_au,
   pattern = 'l*',
   command = 'lopen',
-  desc = 'Open location window on location action',
 })
 autocmd({ 'QuickFixCmdPost' }, {
+  desc = 'Open quickfix window on quickfix action',
   group = quickfix_au,
   pattern = [[[^l]*]],
   command = 'copen',
-  desc = 'Open quickfix window on quickfix action',
 })
 autocmd({ 'FileType' }, {
+  desc = 'Open quickfix results in a new split',
   group = quickfix_au,
   pattern = 'qf',
   callback = function()
@@ -157,5 +158,29 @@ autocmd({ 'FileType' }, {
     -- "n", "<C-v>", :call <SID>OpenQuickfix("vnew")<CR>
     -- "n", "<C-x>", :call <SID>OpenQuickfix("split")<CR>
   end,
-  desc = 'Open quickfix window on quickfix action',
+})
+
+-- custom settings
+local CustomSettingsGroup = augroup 'CustomSettingsGroup'
+autocmd('BufWritePost', {
+  group = CustomSettingsGroup,
+  pattern = '*',
+  callback = function(args)
+    local shebang = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
+    if not shebang or not shebang:match '^#!.+' then
+      return
+    end
+    local filename = vim.api.nvim_buf_get_name(args.buf)
+    ---@diagnostic disable-next-line: undefined-field
+    local fileinfo = vim.uv.fs_stat(filename)
+    if not fileinfo or bit.band(fileinfo.mode - 32768, 0x40) ~= 0 then
+      return
+    end
+
+    vim.notify 'File made executable'
+    ---@diagnostic disable-next-line: undefined-field
+    vim.uv.fs_chmod(filename, bit.bor(fileinfo.mode, 493))
+  end,
+  once = false,
+  desc = 'Mark script files with shebangs as executable on write.',
 })

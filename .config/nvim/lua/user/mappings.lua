@@ -1,21 +1,16 @@
--- leader key - before mapping lsp maps
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
-
 local utils = require 'user.utils'
 local opts = utils.map_opts
 local nmap = utils.nnoremap
 local nnoremap = utils.nnoremap
-local vmap = utils.vnoremap
+local vmap = utils.vmap
 local vnoremap = utils.vnoremap
 local onoremap = utils.onoremap
 local inoremap = utils.inoremap
-local xmap = utils.xnoremap
 local xnoremap = utils.xnoremap
 local tnoremap = utils.tnoremap
 
 -- Select all file visually
-nnoremap('<leader>sa', 'gg^<S-v>G$')
+nnoremap('<leader>sa', 'ggVG')
 
 -- Inner word movements
 onoremap('<c-w>', 'iw')
@@ -37,6 +32,24 @@ vmap('<s-tab>', '<gv')
 -- Indent by block
 vim.cmd [[let @i="v%koj>$"]]
 vim.cmd [[let @o="v%koj<$"]]
+
+-- command line mappings
+vim.keymap.set('c', '<c-h>', '<left>')
+vim.keymap.set('c', '<c-j>', '<down>')
+vim.keymap.set('c', '<c-k>', '<up>')
+vim.keymap.set('c', '<c-l>', '<right>')
+-- vim.keymap.set('c', '^', '<home>')
+-- vim.keymap.set('c', '$', '<end>')
+
+-- Add undo break-points
+inoremap(',', ',<c-g>u')
+inoremap('.', '.<c-g>u')
+inoremap(';', ';<c-g>u')
+
+inoremap(';;', '<C-O>A;')
+
+-- Search for string within the visual selection
+vim.keymap.set('x', '/', '<Esc>/\\%V')
 
 -- Copy number of lines and paste below
 function _G.__duplicate_lines(motion)
@@ -62,6 +75,7 @@ function _G.__duplicate_lines(motion)
   -- vim.cmd.normal(finish[1] + 1 .. 'G')
   vim.api.nvim_win_set_cursor(vim.api.nvim_get_current_win(), { finish[1] + 1, finish[2] })
 end
+
 nmap('<leader>cp', _G.__duplicate_lines)
 
 -- Indent block
@@ -88,17 +102,17 @@ com! -bang FormatGroovyMap call s:FormatGroovyMap("<bang>")
 ]=]
 
 -- Windows mappings
-nnoremap('<Leader><Leader>', '<C-^>')
-nnoremap('<tab>', '<c-w>w')
-nnoremap('<c-w><c-c>', '<c-w>c')
-nnoremap('<leader>bn', ':bn<cr>')
-nnoremap('<c-w>v', ':vnew<cr>')
-nnoremap('<c-w>s', ':new<cr>')
-nnoremap('<c-w>e', ':enew<cr>')
-nnoremap('<C-J>', '<C-W><C-J>')
-nnoremap('<C-K>', '<C-W><C-K>')
-nnoremap('<C-L>', '<C-W><C-L>')
-nnoremap('<C-H>', '<C-W><C-H>')
+nnoremap('<Leader><Leader>', '<C-^>', true)
+nnoremap('<tab>', '<c-w>w', true)
+nnoremap('<c-w><c-c>', '<c-w>c', true)
+nnoremap('<leader>bn', '<cmd>bn<cr>', true)
+nnoremap('<c-w>v', ':vnew<cr>', true)
+nnoremap('<c-w>s', ':new<cr>', true)
+nnoremap('<c-w>e', ':enew<cr>', true)
+nnoremap('<C-J>', '<C-W><C-J>', true)
+nnoremap('<C-K>', '<C-W><C-K>', true)
+nnoremap('<C-L>', '<C-W><C-L>', true)
+nnoremap('<C-H>', '<C-W><C-H>', true)
 
 -- entire file text-object
 onoremap('ae', '<cmd>normal! ggVG<CR>', true)
@@ -114,29 +128,33 @@ end
 -- keymap('n', '<leader>Q', ":<c-u><c-r><c-r>='let @q = '. string(getreg('q'))<cr><c-f><left>", opts.no_remap)
 
 -- Paste in insert mode
-inoremap('<c-v>', '<c-r>')
+inoremap('<c-v>', '<c-r>"', true)
 
--- Quickfix
+-- Quickfix and tabs
 nnoremap(']q', ':cnext<cr>zz', true)
 nnoremap('[q', ':cprev<cr>zz', true)
 nnoremap(']l', ':lnext<cr>zz', true)
 nnoremap('[l', ':lprev<cr>zz', true)
+nnoremap(']t', ':tabnext<cr>zz', true)
+nnoremap('[t', ':tabprev<cr>zz', true)
+nnoremap(']b', ':bnext<cr>', true)
+nnoremap('[b', ':bprev<cr>', true)
 
 -- This creates a new line of '=' signs the same length of the line
 nnoremap('<leader>=', 'yypVr=')
 
 -- Map dp and dg with leader for diffput and diffget
-nnoremap('<leader>dp', ':diffput<cr>')
-nnoremap('<leader>dg', ':diffget<cr>')
-nnoremap('<leader>dn', ':windo diffthis<cr>')
-nnoremap('<leader>df', ':bufdo diffoff<cr>')
+nnoremap('<leader>dp', ':diffput<cr>', true)
+nnoremap('<leader>dg', ':diffget<cr>', true)
+nnoremap('<leader>dn', ':windo diffthis<cr>', true)
+nnoremap('<leader>df', ':windo diffoff<cr>', true)
 
 -- Map enter to no highlight
-nnoremap('<CR>', ':nohlsearch<CR><CR>', true)
+nnoremap('<CR>', '<Esc>:nohlsearch<CR><CR>', true)
 
 -- Set mouse=v mapping
-nnoremap('<leader>ma', ':set mouse=a<cr>')
-nnoremap('<leader>mv', ':set mouse=v<cr>')
+nnoremap('<leader>ma', ':set mouse=a<cr>', true)
+nnoremap('<leader>mv', ':set mouse=v<cr>', true)
 
 -- Exit mappings
 inoremap('jk', '<esc>')
@@ -180,20 +198,21 @@ tnoremap('<Esc>', [[<C-\><C-n>]])
 --   return star_search('*')
 -- end)
 
-vnoremap('*', ":call StarSearch('/')<CR>/<C-R>=@/<CR><CR>")
-vnoremap('#', ":call StarSearch('?')<CR>?<C-R>=@/<CR><CR>")
+vnoremap('*', ":call StarSearch('/')<CR>/<C-R>=@/<CR><CR>", true)
+vnoremap('#', ":call StarSearch('?')<CR>?<C-R>=@/<CR><CR>", true)
 
 -- Map - to move a line down and _ a line up
 nnoremap('-', [["ldd$"lp]])
 nnoremap('_', [["ldd2k"lp]])
 
 -- Copy entire file to clipboard
-nnoremap('Y', ':%y+<cr>')
+nnoremap('Y', ':%y+<cr>', true)
 
 -- Copy file path to clipboard
-nnoremap('<leader>cfp', [[:let @+ = expand('%')<cr>:echo   "Copied file path " . expand('%')<cr>]], true)
-nnoremap('<leader>cfa', [[:let @+ = expand('%:p')<cr>:echo "Copied file path " . expand('%:p')<cr>]], true)
-nnoremap('<leader>cfd', [[:let @+ = expand('%:p:h')<cr>:echo "Copied file path " . expand('%:p:h')<cr>]], true)
+nnoremap('<leader>cfp', [[:let @+ = expand('%')<cr>:echo   "Copied relative file path " . expand('%')<cr>]], true)
+nnoremap('<leader>cfa', [[:let @+ = expand('%:p')<cr>:echo "Copied full file path " . expand('%:p')<cr>]], true)
+nnoremap('<leader>cfd', [[:let @+ = expand('%:p:h')<cr>:echo "Copied file directory path " . expand('%:p:h')<cr>]], true)
+nnoremap('<leader>cfn', [[:let @+ = expand('%:t')<cr>:echo "Copied file directory path " . expand('%:t')<cr>]], true)
 
 -- Copy and paste to/from system clipboard
 vmap('cp', '"+y')
@@ -202,11 +221,11 @@ nmap('cp', '"+y')
 nmap('cv', '"+p')
 
 -- Move visually selected block
-vnoremap('J', [[:m '>+1<CR>gv=gv]])
-vnoremap('K', [[:m '<-2<CR>gv=gv]])
+vnoremap('J', [[:m '>+1<CR>gv=gv]], true)
+vnoremap('K', [[:m '<-2<CR>gv=gv]], true)
 
 -- Convert all tabs to spaces
-nnoremap('<leader>ct<space>', ':retab<cr>')
+nnoremap('<leader>ct<space>', ':retab<cr>', true)
 
 -- Enable folding with the leader-f/a
 nnoremap('<leader>ff', 'za')
@@ -216,11 +235,11 @@ nnoremap('<leader>fo', 'zR')
 nnoremap('<leader>fl', 'zazczA')
 
 -- Change \n to new lines
-nmap('<leader><cr>', [[:silent! %s?\\n?\r?g<bar>silent! %s?\\t?\t?g<bar>silent! %s?\\r?\r?g<cr>:noh<cr>]])
+nmap('<leader><cr>', [[:silent! %s?\\n?\r?g<bar>silent! %s?\\t?\t?g<bar>silent! %s?\\r?\r?g<cr>:noh<cr>]], true)
 
 -- Move vertically by visual line (don't skip wrapped lines)
-nmap('k', "v:count == 0 ? 'gk' : 'k'", opts.expr_silent)
-nmap('j', "v:count == 0 ? 'gj' : 'j'", opts.expr_silent)
+-- nmap('k', "v:count == 0 ? 'gk' : 'k'", opts.expr_silent)
+-- nmap('j', "v:count == 0 ? 'gj' : 'j'", opts.expr_silent)
 
 -- Scroll one line
 nnoremap('<PageUp>', '<c-y>', true)
@@ -231,25 +250,20 @@ nnoremap('<C-u>', '<C-u>zz', true)
 nnoremap('<C-d>', '<C-d>zz', true)
 
 -- Change working directory based on open file
-nnoremap('<leader>cd', ':cd %:p:h<CR>:pwd<CR>')
+nnoremap('<leader>cd', ':cd %:p:h<CR>:pwd<CR>', true)
 
 -- Convert all tabs to spaces
-nnoremap('<leader>ct<space>', ':retab<cr>')
+nnoremap('<leader>ct<space>', ':retab<cr>', true)
 -- Change every " -" with " \<cr> -" to break long lines of bash
 nnoremap([[<leader>\]], [[:.s/ -/ \\\r  -/g<cr>:noh<cr>]], true)
 
 -- Search and Replace
-nnoremap('<Leader>r', ':.,$s?\\V<C-r><C-w>?<C-r><C-w>?gc<Left><Left><Left>')
-vnoremap('<leader>r', '"hy:.,$s?\\V<C-r>h?<C-r>h?gc<left><left><left>')
-vnoremap('<leader>dab', [["hyqeq:v?\V<c-r>h?d E<cr>:let @"=@e<cr>:noh<cr>]], { desc = 'Delete all but ...' })
-vnoremap('<leader>daa', [["hyqeq:g?\V<c-r>h?d E<cr>:let @"=@e<cr>:noh<cr>]])
-vnoremap('<leader>yab', [["hymmqeq:v?\V<c-r>h?yank E<cr>:let @"=@e<cr>`m:noh<cr>]])
-vnoremap('<leader>yaa', [["hymmqeq:g?\V<c-r>h?yank E<cr>:let @"=@e<cr>`m:noh<cr>]])
-
--- Paste without saving deleted reg
-nmap('<leader>p', '<Plug>ReplaceWithRegisterOperator')
-nmap('<leader>P', '<Plug>ReplaceWithRegisterLine')
-xmap('<leader>P', '<Plug>ReplaceWithRegisterVisual')
+nnoremap('<Leader>r', ':.,$s?\\V<C-r><C-w>?<C-r><C-w>?gc<Left><Left><Left>', true)
+vnoremap('<leader>r', '"hy:.,$s?\\V<C-r>h?<C-r>h?gc<left><left><left>', true)
+vnoremap('<leader>dab', [["hyqeq:v?\V<c-r>h?d E<cr>:let @"=@e<cr>:noh<cr>]], { desc = 'Delete all but ...', silent = true })
+vnoremap('<leader>daa', [["hyqeq:g?\V<c-r>h?d E<cr>:let @"=@e<cr>:noh<cr>]], true)
+vnoremap('<leader>yab', [["hymmqeq:v?\V<c-r>h?yank E<cr>:let @"=@e<cr>`m:noh<cr>, true]])
+vnoremap('<leader>yaa', [["hymmqeq:g?\V<c-r>h?yank E<cr>:let @"=@e<cr>`m:noh<cr>]], true)
 
 -- Base64 dencode
 vnoremap('<leader>46', [[c<c-r>=substitute(system('base64 --decode', @"), '\n$', '', 'g')<cr><esc>]], true)
@@ -257,8 +271,7 @@ vnoremap('<leader>64', [[c<c-r>=substitute(system('base64', @"), '\n$', '', 'g')
 
 -- Vimrc edit mappings
 nnoremap('<leader>ev', [[:execute("vsplit " . '~/.config/nvim/lua/user/options.lua')<cr>]], true)
-nnoremap('<leader>ep', [[:execute("vsplit " . '~/.config/nvim/lua/user/plugins/init.lua')<cr>]], true)
-nnoremap('<leader>ec', [[:execute("vsplit " . '~/.config/nvim/lua/user/plugins/configs.lua')<cr>]], true)
+nnoremap('<leader>ep', [[:execute("vsplit " . '~/.config/nvim/lua/plugins/init.lua')<cr>]], true)
 nnoremap('<leader>el', [[:execute("vsplit " . '~/.config/nvim/lua/user/lsp/config.lua')<cr>]], true)
 nnoremap('<leader>em', [[:execute("vsplit " . '~/.config/nvim/lua/user/mappings.lua')<cr>]], true)
 
@@ -283,11 +296,11 @@ end, {})
 -- Change indentation --
 ------------------------
 nnoremap('cii', function()
-  vim.ui.input({ prompt = 'Enter new indent' }, function(indent_size)
-    local indent_size = tonumber(indent_size)
-    vim.opt_local.shiftwidth = indent_size
-    vim.opt_local.softtabstop = indent_size
-    vim.opt_local.tabstop = indent_size
+  vim.ui.input({ prompt = 'Enter new indent: ' }, function(indent_size)
+    local indent_size_normalized = tonumber(indent_size)
+    vim.opt_local.shiftwidth = indent_size_normalized
+    vim.opt_local.softtabstop = indent_size_normalized
+    vim.opt_local.tabstop = indent_size_normalized
   end)
 end)
 
@@ -309,24 +322,36 @@ nnoremap <silent> <leader>( :call SplitParamLines()<cr>
 -------------------------
 -- Diff with last save --
 -------------------------
-vim.cmd [[
-function! s:DiffWithSaved()
-  let filetype=&ft
-  diffthis
-  lefta vnew | r # | normal! 1Gdd
-  exe 'setlocal bt=nofile bh=wipe nobl noswf ro foldlevel=999 ft=' . filetype
-  diffthis
-  nnoremap <buffer> q :bd!<cr>
-  augroup ShutDownDiffOnLeave
-    autocmd! * <buffer>
-    autocmd BufDelete,BufUnload,BufWipeout <buffer> wincmd p | diffoff | wincmd p | diffoff
-  augroup END
+vim.api.nvim_create_user_command('DiffWithSaved', function()
+  -- Get start buffer
+  local start = vim.api.nvim_get_current_buf()
+  local filetype = vim.api.nvim_get_option_value('filetype', { buf = start })
 
-  wincmd p
-endfunction
-com! DiffSaved call s:DiffWithSaved()
-nnoremap <leader>ds :DiffSaved<cr>
-]]
+  -- `vnew` - Create empty vertical split window
+  -- `set buftype=nofile` - Buffer is not related to a file, will not be written
+  -- `0d_` - Remove an extra empty start row
+  -- `diffthis` - Set diff mode to a new vertical split
+  vim.cmd 'vnew | set buftype=nofile | read ++edit # | 0d_ | diffthis'
+
+  -- Get scratch buffer
+  local scratch = vim.api.nvim_get_current_buf()
+
+  -- Set filetype of scratch buffer to be the same as start
+  vim.api.nvim_set_option_value('filetype', filetype, { buf = scratch })
+
+  -- `wincmd p` - Go to the start window
+  -- `diffthis` - Set diff mode to a start window
+  vim.cmd 'wincmd p | diffthis'
+
+  -- Map `q` for both buffers to exit diff view and delete scratch buffer
+  for _, buf in ipairs { scratch, start } do
+    vim.keymap.set('n', 'q', function()
+      vim.api.nvim_buf_delete(scratch, { force = true })
+      vim.keymap.del('n', 'q', { buffer = start })
+    end, { buffer = buf })
+  end
+end, {})
+nnoremap('<leader>ds', ':DiffWithSaved<cr>', true)
 
 -----------------------
 -- Visual calculator --
@@ -358,12 +383,6 @@ endfunction
 command! -range VisualCalculator call <SID>VisualCalculator()
 vmap <c-r> :VisualCalculator<cr>
 ]]
--- keymap('v', '<c-r>', function()
---   local selection = utils.get_selection()
---   local num = tonumber(selection)
---   P(selection)
---   -- return VisualCalculator()
--- end, opts.no_remap)
 
 ----------
 -- Titleize --
@@ -439,9 +458,54 @@ end, {})
 -- Plugins Management --
 ------------------------
 vim.api.nvim_create_user_command('PluginsList', function()
-  require('user.plugins.mgmt').display_awesome_plugins()
+  require('user.plugins-mgmt').display_awesome_plugins()
 end, {})
 
 vim.api.nvim_create_user_command('PluginsReload', function()
-  require('user.plugins.mgmt').reload_plugin()
+  require('user.plugins-mgmt').reload_plugin()
 end, {})
+
+---------------------
+-- Traverse indent --
+---------------------
+---Adapted from https://vi.stackexchange.com/a/12870
+---Traverse to indent >= or > current indent
+---@param direction integer 1 - forwards | -1 - backwards
+---@param equal boolean include lines equal to current indent in search?
+local function indent_traverse(direction, equal)
+  return function()
+    -- Get the current cursor position
+    local current_line, column = unpack(vim.api.nvim_win_get_cursor(0))
+    local match_line = current_line
+    local match_indent = false
+    local match = false
+
+    local buf_length = vim.api.nvim_buf_line_count(0)
+
+    -- Look for a line of appropriate indent
+    -- level without going out of the buffer
+    while (not match) and (match_line ~= buf_length) and (match_line ~= 1) do
+      match_line = match_line + direction
+      local match_line_str = vim.api.nvim_buf_get_lines(0, match_line - 1, match_line, false)[1]
+      -- local match_line_is_whitespace = match_line_str and match_line_str:match('^%s*$')
+      local match_line_is_whitespace = match_line_str:match '^%s*$'
+
+      if equal then
+        match_indent = vim.fn.indent(match_line) <= vim.fn.indent(current_line)
+      else
+        match_indent = vim.fn.indent(match_line) < vim.fn.indent(current_line)
+      end
+      match = match_indent and not match_line_is_whitespace
+    end
+
+    -- If a line is found go to line
+    if match or match_line == buf_length then
+      vim.fn.cursor { match_line, column + 1 }
+    end
+  end
+end
+-- vim.keymap.set({ 'n', 'v' }, 'gj', indent_traverse(1, true)) -- next equal indent
+-- vim.keymap.set({ 'n', 'v' }, 'gk', indent_traverse(-1, true)) -- previous equal indent
+--
+-- vim.keymap.set({ 'n', 'v' }, 'gJ', indent_traverse(1, false)) -- next equal indent
+-- vim.keymap.set({ 'n', 'v' }, 'gK', indent_traverse(-1, false)) -- previous equal indent

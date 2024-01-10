@@ -17,13 +17,14 @@ M.get_branches = function()
   -- git for-each-ref --sort=-committerdate --format="%(refname:short)"
 
   local output = utils.get_os_command_output({ 'git', 'for-each-ref', '--perl', '--sort', '-committerdate', '--format', format, opts.pattern }, opts.cwd)
-  local remotes = utils.get_os_command_output({ 'git', 'remote' }, opts.cwd)
+  -- local remotes = utils.get_os_command_output({ 'git', 'remote' }, opts.cwd)
 
-  local unescape_single_quote = function(v)
-    return string.gsub(v, "\\([\\'])", '%1')
-  end
+  -- local unescape_single_quote = function(v)
+  --   return string.gsub(v, "\\([\\'])", '%1')
+  -- end
   return output
 end
+
 M.open = function()
   local opts = {}
   local results = {}
@@ -61,15 +62,15 @@ M.open = function()
       })
     else
       utils.notify('actions.git_checkout', {
-        msg = string.format("Error when checking out: %s. Git returned: '%s'", selection.value, table.concat(stderr, ' ')),
+        msg = string.format("Error when checking out: %s. Git returned: '%s'", selection.value, table.concat(stderr or {}, ' ')),
         level = 'ERROR',
       })
     end
-    local _, ret_u, stderr_u = utils.get_os_command_output({ 'git', 'branch', '-u', selection.value }, cwd)
+    utils.get_os_command_output({ 'git', 'branch', '-u', selection.value }, cwd)
   end
   local parsed_branches = {}
   local parse_line = function(line)
-    local fields = vim.split(string.sub(line, 2, -2), "''", true)
+    local fields = vim.split(string.sub(line, 2, -2), "''", { plain = true })
     local entry = {
       head = fields[1],
       refname = unescape_single_quote(fields[2]),

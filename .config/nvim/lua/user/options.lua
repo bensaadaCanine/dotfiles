@@ -4,6 +4,7 @@ local keymap = utils.keymap
 local tnoremap = utils.tnoremap
 local vnoremap = utils.vnoremap
 vim.o.compatible = false
+vim.g.python3_host_prog = 'python3'
 
 -- disable legacy vim filetype detection in favor of new lua based from neovim
 -- vim.g.do_filetype_lua = 1
@@ -11,13 +12,19 @@ vim.o.compatible = false
 
 vim.o.cursorcolumn = true
 vim.o.cursorline = true -- Add highlight behind current line
-vim.opt.shortmess:append { c = true, l = false, q = false, S = false }
+vim.opt.shortmess:append { c = true, l = false, q = false, S = false, C = true, I = true }
 vim.o.list = true
-vim.opt.listchars = { tab = '┆·', trail = '·', precedes = '', extends = '', eol = '↲' }
+vim.opt.listchars = {
+  tab = '┆·',
+  -- trail = '·',
+  precedes = '',
+  extends = '',
+  eol = '↲',
+}
 -- set lcscope=tab:┆·,trail:·,precedes:,extends:
 vim.opt.fillchars = {
   vert = '|',
-  fold = '·',
+  fold = ' ',
   foldopen = '',
   foldclose = '',
 }
@@ -43,7 +50,7 @@ vim.o.smartcase = true -- ignore case if search pattern is all lowercase, case-s
 vim.o.autoread = true -- Re-read file if it was changed from the outside
 vim.o.scrolloff = 4 -- When about to scroll page, see 7 lines below cursor
 vim.o.sidescrolloff = 8 -- Columns of context
-vim.o.cmdheight = 2 -- Height of the command bar
+vim.o.cmdheight = 1 -- Height of the command bar
 vim.o.hidden = true -- Hide buffer if abandoned
 vim.o.showmatch = true -- When closing a bracket (like {}), show the enclosing
 vim.o.splitbelow = true -- Horizontaly plitted windows open below
@@ -59,7 +66,7 @@ vim.o.backupdir = vim.fn.stdpath 'state' .. '/backup'
 vim.o.writebackup = false
 vim.o.wildmenu = true -- Displays a menu on autocomplete
 vim.opt.wildmode = { 'longest:full', 'full' } -- Command-line completion mode
-vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
+vim.opt.completeopt = 'menu,menuone,noselect'
 vim.o.previewheight = 15
 vim.o.title = true -- Changes the iterm title
 vim.o.laststatus = 3 -- Global statusline, only one for all buffers
@@ -76,11 +83,14 @@ vim.o.encoding = 'utf-8'
 vim.o.visualbell = true -- Use visual bell instead of beeping
 vim.o.conceallevel = 0
 vim.o.showmode = false -- Redundant as lighline takes care of that
+vim.opt.cpoptions:append '>'
+vim.o.equalalways = true -- When splitting window, make new window same size
 vim.o.history = 1000
 vim.o.termguicolors = true
 vim.o.signcolumn = 'yes'
 -- require 'user.winbar'
 -- opt.winbar = "%{%v:lua.require'user.winbar'.eval()%}"
+-- vim.o.statuscolumn = '%=%{v:wrap?"":v:relnum?v:relnum:v:lnum} %s%C'
 
 -- Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable delays and poor user experience.
 vim.o.updatetime = 300
@@ -91,16 +101,35 @@ vim.opt.path:append { '**' }
 
 -- Folding
 vim.o.foldenable = true
-vim.o.foldmethod = 'syntax'
+-- vim.o.foldmethod = 'syntax'
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.o.foldlevel = 999
-vim.o.foldlevelstart = 10
+vim.o.foldlevelstart = 99
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.foldenable = true
+
+-- Support undercurl
+vim.cmd [[
+let &t_8u = "\e[58:2:%lu:%lu:%lum"
+let &t_Cs = "\e[4:3m"
+let &t_Ce = "\e[4:0m"
+]]
 
 -- j = Delete comment character when joining commented lines.
 -- t = auto break long lines
 -- r = auto insert comment leader after <Enter> (insert mode)
 -- o = auto insert comment leader after o (normal mode)
 -- l = don't break long lines
-vim.opt.formatoptions:append { j = true, t = true, r = true, o = true, l = true }
+vim.opt.formatoptions:append {
+  j = true, -- Where it makes sense, remove a comment leader when joining lines.
+  t = true, -- Auto-wrap text using 'textwidth'
+  r = true, -- Automatically insert the current comment leader after hitting
+  -- <Enter> in Insert mode.
+  o = true,
+  l = true,
+  c = true,
+}
 
 -- Indenting
 vim.o.breakindent = true -- Maintain indent on wrapping lines
@@ -122,21 +151,12 @@ keymap('!', '<D-v>', '<C-R>+', opts.no_remap_silent)
 tnoremap('<D-v>', '<C-R>+', true)
 vnoremap('<D-v>', '<C-R>+', true)
 
-vim.cmd [[
-" hi ColorColumn ctermbg=238 guibg=lightgrey
-" let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-" let &t_SR = "\<Esc>]50;CursorShape=2\x7"
-set guicursor+=i:blinkon1
-]]
---
 -- Abbreviations
-vim.cmd [[
-inoreabbrev seperate separate
-inoreabbrev dont don't
-inoreabbrev rbm # TODO: remove before merging
-inoreabbrev cbm # TODO: change before merging
-inoreabbrev ubm # TODO: uncomment before merging
-]]
+vim.keymap.set('!a', 'dont', [[don't]], opts.no_remap)
+vim.keymap.set('!a', 'seperate', [[separate]], opts.no_remap)
+vim.keymap.set('!a', 'rbm', [[# TODO: remove before merging]], opts.no_remap)
+vim.keymap.set('!a', 'cbm', [[# TODO: change before merging]], opts.no_remap)
+vim.keymap.set('!a', 'ubm', [[# TODO: uncomment before merging]], opts.no_remap)
 
 -- Run current buffer
 vim.cmd [[
@@ -225,8 +245,8 @@ function! RipGrepCWORD(bang, visualmode, ...) abort
 endfunction
 command! -bang -range -nargs=? RipGrepCWORD call RipGrepCWORD("<bang>", v:false, <q-args>)
 command! -bang -range -nargs=? RipGrepCWORDVisual call RipGrepCWORD("<bang>", v:true, <q-args>)
-nmap <c-f> :RipGrepCWORD!<Space>
-vmap <c-f> :RipGrepCWORDVisual!<cr>
+nnoremap <c-f> :RipGrepCWORD!<Space>
+vnoremap <c-f> :RipGrepCWORDVisual!<cr>
 ]]
 
 -- Visual Calculator
@@ -265,20 +285,47 @@ local default_plugins = {
   'getscriptPlugin',
   'gzip',
   'logipat',
-  -- 'netrw',
-  -- 'netrwPlugin',
-  'netrwSettings',
-  'netrwFileHandlers',
+  'man',
   'matchit',
+  'matchparen',
+  'netrw',
+  'netrwFileHandlers',
+  'netrwPlugin',
+  'netrwSettings',
+  'rplugin',
+  'rrhelper',
+  'shada',
+  'spellfile_plugin',
   'tar',
   'tarPlugin',
-  'rrhelper',
-  'spellfile_plugin',
+  'tohtml',
+  'tutor',
   'vimball',
   'vimballPlugin',
   'zip',
   'zipPlugin',
 }
+
 for _, plugin in pairs(default_plugins) do
   vim.g['loaded_' .. plugin] = 1
 end
+
+local kube_config_pattern = [[.*\.kube/config]]
+vim.filetype.add {
+  extension = { hcl = 'terraform', tfvars = 'terraform' },
+  pattern = {
+    ['.*/templates/.*%.yaml'] = {
+      function()
+        if vim.fn.search('{{.+}}', 'nw') then
+          return 'gotmpl'
+        end
+      end,
+      { priority = 200 },
+    },
+    ['.*Jenkinsfile.*'] = 'groovy',
+    ['.*/tasks/.*%.ya?ml'] = { 'yaml.ansible', { priority = 201 } },
+    ['.*/playbooks?/.*%.ya?ml'] = { 'yaml.ansible', { priority = 201 } },
+    ['playbook%.ya?ml'] = { 'yaml.ansible', { priority = 201 } },
+    [kube_config_pattern] = 'yaml',
+  },
+}
