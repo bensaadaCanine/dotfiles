@@ -1,28 +1,29 @@
 local utils = require 'user.utils'
-local user_maps = require 'user.lsp.maps'
+local user_maps = require 'user.lsp.keymaps'
 local autocmd = utils.autocmd
 local augroup = utils.augroup
-local moshe_formatting = require 'user.lsp.formatting'
-local buf_set_option = vim.api.nvim_buf_set_option
-local navic = require 'nvim-navic'
 
 local on_attach_aug = augroup 'OnAttachAu'
 local default_on_attach = function(client, bufnr)
-  -- Add mappings
+  ------------------
+  -- Add mappings --
+  ------------------
   user_maps(bufnr)
 
-  -- Plugins on-attach
+  -----------------------
+  -- Plugins on-attach --
+  -----------------------
   local basics = require 'lsp_basics'
   basics.make_lsp_commands(client, bufnr)
-  moshe_formatting.setup(client, bufnr)
-  if client.server_capabilities.documentSymbolProvider then
-    navic.attach(client, bufnr)
-  end
+  require('user.lsp.formatting').setup(client, bufnr)
 
+  ------------------
+  -- AutoCommands --
+  ------------------
   if client.server_capabilities.code_lens then
     autocmd({ 'BufEnter', 'InsertLeave', 'InsertEnter' }, {
-      group = on_attach_aug,
       desc = 'Auto show code lenses',
+      group = on_attach_aug,
       buffer = bufnr,
       command = 'silent! lua vim.lsp.codelens.refresh()',
     })
@@ -42,52 +43,34 @@ local default_on_attach = function(client, bufnr)
       command = 'silent! lua vim.lsp.buf.clear_references()',
     })
   end
+  -- local diagnostic_pop = augroup 'DiagnosticPop'
+  -- autocmd('CursorHold', {
+  --   buffer = bufnr,
+  --   group = diagnostic_pop,
+  --   callback = function()
+  --     vim.diagnostic.open_float(nil, {
+  --       focusable = false,
+  --       close_events = { 'BufLeave', 'CursorMoved', 'InsertEnter', 'FocusLost' },
+  --       border = 'rounded',
+  --       source = 'always',
+  --       prefix = ' ',
+  --       scope = 'cursor',
+  --     })
+  --   end,
+  -- })
 
-  -- Enable tag jump based on LSP
-  if client.server_capabilities.goto_definition == true then
-    buf_set_option(bufnr, 'tagfunc', 'v:lua.vim.lsp.tagfunc')
+  ----------------------------------
+  -- Enable tag jump based on LSP --
+  ----------------------------------
+  if client.server_capabilities.goto_definition then
+    vim.api.nvim_set_option_value('tagfunc', 'v:lua.vim.lsp.tagfunc', { buf = bufnr })
   end
-
-  local diagnostic_pop = augroup 'DiagnosticPop'
-  autocmd('CursorHold', {
-    buffer = bufnr,
-    group = diagnostic_pop,
-    callback = function()
-      if vim.lsp.buf.server_ready() then
-        vim.diagnostic.open_float(nil, {
-          focusable = false,
-          close_events = { 'BufLeave', 'CursorMoved', 'InsertEnter', 'FocusLost' },
-          border = 'rounded',
-          source = 'always',
-          prefix = ' ',
-          scope = 'cursor',
-        })
-      else
-        P 'lsp not ready'
-      end
-    end,
-  })
 end
 
 local minimal_on_attach = function(_, bufnr)
   P 'minimal on_attach'
   -- Add mappings
   user_maps(bufnr)
-
-  -- local basics = require 'lsp_basics'
-  -- basics.make_lsp_commands(client, bufnr)
-  --
-  -- if not vim.tbl_contains(disable_ls_signature, client.name) then
-  --   require('lsp_signature').on_attach()
-  -- end
-
-  -- Enable tag jump and formatting based on LSP
-  -- if client.server_capabilities.goto_definition == true then
-  --   buf_set_option(bufnr, 'tagfunc', 'v:lua.vim.lsp.tagfunc')
-  -- end
-  -- if client.server_capabilities.document_formatting == true then
-  --   buf_set_option(bufnr, 'formatexpr', 'v:lua.vim.lsp.formatexpr()')
-  -- end
 end
 
 return {

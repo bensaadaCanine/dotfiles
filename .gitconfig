@@ -21,6 +21,7 @@
 
 [branch]
   autosetupmerge = always
+	autosetuprebase = always
 
 [alias]
   log  = log --pretty=log

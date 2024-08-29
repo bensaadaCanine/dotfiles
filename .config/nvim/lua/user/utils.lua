@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 local M = {}
 M.autocmd = vim.api.nvim_create_autocmd
 
@@ -65,38 +66,111 @@ M.xnoremap = function(lhs, rhs, silent)
   M.keymap('x', lhs, rhs, M.check_silent(silent, M.map_opts.no_remap))
 end
 
-local vim = vim
-local api = vim.api
+-- Helper functions
+vim.cmd [[
+function! GetVisualSelection() abort
+  let [lnum1, col1] = getpos("'<")[1:2]
+  let [lnum2, col2] = getpos("'>")[1:2]
+  let lines = getline(lnum1, lnum2)
+  let lines[-1] = lines[-1][: col2 - (&selection ==? 'inclusive' ? 1 : 2)]
+  let lines[0] = lines[0][col1 - 1:]
+  let entire_selection = join(lines, "\n")
+  return entire_selection
+endfunction
 
-function M.get_selection()
-  -- does not handle rectangular selection
-  local s_start = vim.fn.getpos "'<"
-  local s_end = vim.fn.getpos "'>"
-  local n_lines = math.abs(s_end[2] - s_start[2]) + 1
-  if s_start[2] == 0 then
-    s_start[2] = 1
-    s_end[2] = 2
-    s_end[3] = 1
+function! GetMotion(motion)
+  let saved_register = getreg('a')
+  defer setreg('a', saved_register)
+
+  exe 'normal! ' .. a:motion .. '"ay'
+  return @a
+endfunction
+
+function! ReplaceMotion(motion, text)
+  let saved_register = getreg('a')
+  defer setreg('a', saved_register)
+
+  let @a = a:text
+
+  exe 'normal! ' .. a:motion .. '"ap'
+endfunction
+]]
+
+M.get_os_command_output = function(cmd, cwd)
+  local Job = require 'plenary.job'
+  if not cwd then
+    cwd = vim.fn.getcwd()
   end
-  local lines = api.nvim_buf_get_lines(0, s_start[2] - 1, s_end[2], false)
-  -- return
-  lines[1] = string.sub(lines[1], s_start[3], -1)
-  if n_lines == 1 then
-    lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3] - s_start[3] + 1)
-  else
-    lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
+  if type(cmd) ~= 'table' then
+    M.pretty_print('cmd has to be a table', vim.log.leger.ERROR, [[🖥️]])
+    return {}
   end
-  return lines
+  local command = table.remove(cmd, 1)
+  local stderr = {}
+  local stdout, ret = Job:new({
+    command = command,
+    args = cmd,
+    cwd = cwd,
+    on_stderr = function(_, data)
+      table.insert(stderr, data)
+    end,
+  }):sync()
+  return stdout, ret, stderr
 end
 
-M.pretty_print = function(message, title, icon)
+--- Pretty print using vim.notify
+---@param message string: The message to print
+---@param title string: The title of the notification
+---@param icon string: The icon of the notification
+---@param level number: The log level of the notification (vim.log.levels.INFO by default)
+---@return nil
+M.pretty_print = function(message, title, icon, level)
   if not icon then
     icon = ''
   end
   if not title then
     title = 'Neovim'
   end
-  vim.notify(message, 2, { title = title, icon = '' })
+  if not level then
+    level = vim.log.levels.INFO
+  end
+  vim.notify(message, level, { title = title, icon = icon })
 end
+
+M.country_os_to_emoji = function(iso)
+  local python_file = vim.fn.tempname() .. '.py'
+  local python_file_content = [[import sys; print("".join(chr(ord(c) + 127397) for c in sys.argv[1].upper()), end='')]]
+  local python_file_handle = io.open(python_file, 'w')
+  if f ~= nil then
+    python_file_handle:close()
+    return ''
+  end
+  python_file_handle:write(python_file_content)
+  python_file_handle:close()
+  local emoji = vim.system({ 'python3', python_file, iso }, { text = true }):wait().stdout
+  vim.fn.delete(python_file)
+  return emoji
+end
+
+M.tbl_get_next = function(tbl, cur)
+  local idx = 1
+  for i, v in ipairs(tbl) do
+    if v == cur then
+      idx = i % #tbl + 1
+      break
+    end
+  end
+  return idx
+end
+
+-- borders
+M.borders = {
+  double_rounded = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' },
+  single_rounded = { '╭', '─', '╮', '│', '╯', '─', '╰', '│' },
+  double_sharp = { '┏', '━', '┓', '┃', '┛', '━', '┗', '┃' },
+  single_sharp = { '┌', '─', '┐', '│', '┘', '─', '└', '│' },
+}
+-- M.float_border = M.single_border_rounded
+M.float_border = M.borders.single_rounded
 
 return M
