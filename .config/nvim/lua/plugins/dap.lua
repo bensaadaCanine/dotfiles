@@ -43,12 +43,16 @@ local M = {
       require 'dap'
       require('dapui').toggle()
     end, {})
+    require('user.menu').add_actions('DAP', {
+      ['Load DAP'] = function()
+        vim.cmd.DAP()
+      end,
+    })
   end,
   cmd = { 'DAP' },
   dependencies = {
     'rcarriga/nvim-dap-ui',
     'mfussenegger/nvim-dap-python',
-    'nvim-telescope/telescope-dap.nvim',
     'rcarriga/cmp-dap',
     'mxsdev/nvim-dap-vscode-js',
     'theHamsta/nvim-dap-virtual-text',
@@ -83,7 +87,6 @@ M.config = function()
   -- mason_nvim_dap.setup_handlers()
 
   local dap = require 'dap'
-  require('telescope').load_extension 'dap'
   local dapui = require 'dapui'
   dapui.setup()
   require('nvim-dap-virtual-text').setup { enabled = true }

@@ -4,16 +4,15 @@ local M = {
     pcall(require('nvim-treesitter.install').update { with_sync = true })
   end,
   dependencies = {
-    'nvim-treesitter/nvim-treesitter-textobjects',
+    'Afourcat/treesitter-terraform-doc.nvim',
     'nvim-treesitter/nvim-treesitter-context',
     'nvim-treesitter/nvim-treesitter-refactor',
-    'Afourcat/treesitter-terraform-doc.nvim',
-    -- {
-    --   'ckolkey/ts-node-action',
-    --   config = function()
-    --     vim.keymap.set({ 'n', 'v' }, 'gs', require('ts-node-action').node_action, { desc = 'Trigger Node Action' })
-    --   end,
-    -- },
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    {
+      'windwp/nvim-ts-autotag',
+      ft = { 'html', 'javascript', 'jsx', 'markdown', 'typescript', 'xml' },
+    },
+    'RRethy/nvim-treesitter-endwise',
   },
   event = 'BufReadPost',
 }
@@ -30,19 +29,6 @@ M.config = function()
     filetype = 'gotmpl',
     used_by = { 'gohtmltmpl', 'gotexttmpl', 'gotmpl' },
   }
-
-  -- unknown filetypes
-  -- vim.treesitter.language.register('java', 'groovy')
-  -- local ft_to_lang = ts_parsers.ft_to_lang
-  -- ts_parsers.ft_to_lang = function(ft)
-  --   if ft == 'zsh' then
-  --     return 'bash'
-  --   end
-  --   if ft == 'groovy' then
-  --     return 'java'
-  --   end
-  --   return ft_to_lang(ft)
-  -- end
 
   ---@diagnostic disable-next-line: missing-fields
   configs.setup {
@@ -85,11 +71,17 @@ M.config = function()
     incremental_selection = {
       enable = true,
       keymaps = {
-        init_selection = 'gnn',
+        init_selection = 'vn',
         node_incremental = '<CR>',
         scope_incremental = '<S-CR>',
         node_decremental = '<BS>',
       },
+    },
+    matchup = {
+      enable = true,
+    },
+    endwise = {
+      enable = true,
     },
     autotag = {
       enable = true,
@@ -139,7 +131,7 @@ M.config = function()
       },
     },
     refactor = {
-      highlight_current_scope = { enable = true },
+      highlight_current_scope = { enable = false },
       smart_rename = {
         enable = true,
         keymaps = {

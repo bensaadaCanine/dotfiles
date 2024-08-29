@@ -18,6 +18,7 @@ nnoremap('v<c-w>', 'viw')
 
 -- Map 0 to first non-blank character
 nnoremap('0', '^')
+vnoremap('0', '^')
 
 -- Move to the end of the line
 nnoremap('L', '$ze10zl')
@@ -48,8 +49,12 @@ inoremap(';', ';<c-g>u')
 
 inoremap(';;', '<C-O>A;')
 
+-- delete word on insert mode
+inoremap('<C-e>', '<C-o>de')
+inoremap('<C-b>', '<C-o>db')
+
 -- Search for string within the visual selection
-vim.keymap.set('x', '/', '<Esc>/\\%V')
+xnoremap('/', '<Esc>/\\%V')
 
 -- Copy number of lines and paste below
 function _G.__duplicate_lines(motion)
@@ -69,14 +74,31 @@ function _G.__duplicate_lines(motion)
     finish = vim.api.nvim_buf_get_mark(0, ']')
   end
   local text = vim.api.nvim_buf_get_lines(0, start[1] - 1, finish[1], false)
-  -- prepend empty string to text table
   table.insert(text, 1, '')
   vim.api.nvim_buf_set_lines(0, finish[1], finish[1], false, text)
-  -- vim.cmd.normal(finish[1] + 1 .. 'G')
   vim.api.nvim_win_set_cursor(vim.api.nvim_get_current_win(), { finish[1] + 1, finish[2] })
 end
 
 nmap('<leader>cp', _G.__duplicate_lines)
+
+-- surround with string interpolation with motion
+function _G.__surround_with_interpolation(motion)
+  local start = {}
+  local finish = {}
+  if motion == nil or motion == 'line' then
+    vim.o.operatorfunc = 'v:lua.__surround_with_interpolation'
+    return vim.fn.feedkeys 'g@'
+  end
+  if motion == 'char' then
+    start = vim.api.nvim_buf_get_mark(0, '[')
+    finish = vim.api.nvim_buf_get_mark(0, ']')
+  end
+  local line = vim.api.nvim_buf_get_text(0, start[1] - 1, start[2], finish[1] - 1, finish[2] + 1, {})[1]
+  local new_text = { '"${' .. line .. '}"' }
+  vim.api.nvim_buf_set_text(0, start[1] - 1, start[2], finish[1] - 1, finish[2] + 1, new_text)
+  vim.api.nvim_win_set_cursor(vim.api.nvim_get_current_win(), { finish[1], finish[2] })
+end
+nmap('mt', _G.__surround_with_interpolation)
 
 -- Indent block
 nmap('<leader>gt', function()
@@ -202,8 +224,14 @@ vnoremap('*', ":call StarSearch('/')<CR>/<C-R>=@/<CR><CR>", true)
 vnoremap('#', ":call StarSearch('?')<CR>?<C-R>=@/<CR><CR>", true)
 
 -- Map - to move a line down and _ a line up
-nnoremap('-', [["ldd$"lp]])
-nnoremap('_', [["ldd2k"lp]])
+nnoremap('-', [["ldd$"lp==]])
+nnoremap('_', [["ldd2k"lp==]])
+
+-- Allow clipboard copy paste in neovim
+vim.keymap.set('', '<D-v>', '+p<CR>', opts.no_remap_silent)
+vim.keymap.set('!', '<D-v>', '<C-R>+', opts.no_remap_silent)
+tnoremap('<D-v>', '<C-R>+', true)
+vnoremap('<D-v>', '<C-R>+', true)
 
 -- Copy entire file to clipboard
 nnoremap('Y', ':%y+<cr>', true)
@@ -223,6 +251,9 @@ nmap('cv', '"+p')
 -- Move visually selected block
 vnoremap('J', [[:m '>+1<CR>gv=gv]], true)
 vnoremap('K', [[:m '<-2<CR>gv=gv]], true)
+
+-- Select last inserted text
+nnoremap('gV', '`[v`]')
 
 -- Convert all tabs to spaces
 nnoremap('<leader>ct<space>', ':retab<cr>', true)
@@ -280,6 +311,13 @@ nnoremap('<leader>bd', '<cmd>BDelete this<cr>', true)
 -- Close current buffer
 nnoremap('<leader>bc', ':close<cr>', true)
 
+-- Abbreviations
+vim.keymap.set('!a', 'dont', [[don't]], opts.no_remap)
+vim.keymap.set('!a', 'seperate', [[separate]], opts.no_remap)
+vim.keymap.set('!a', 'rbm', [[# TODO: remove before merging]], opts.no_remap)
+vim.keymap.set('!a', 'cbm', [[# TODO: change before merging]], opts.no_remap)
+vim.keymap.set('!a', 'ubm', [[# TODO: uncomment before merging]], opts.no_remap)
+
 -----------------
 -- Yaml / Json --
 -----------------
@@ -290,6 +328,21 @@ end, {})
 
 vim.api.nvim_create_user_command('Json2Yaml', function()
   vim.cmd [[%!yq -P]]
+end, {})
+
+-----------------
+-- Where am I? --
+-----------------
+vim.api.nvim_create_user_command('Whereami', function()
+  local country_data = vim.json.decode(require('plenary.curl').get('http://ipconfig.io/json').body)
+  local iso = country_data.country_iso
+  local country = country_data.country
+  local emoji = require('user.utils').country_os_to_emoji(iso)
+  if not emoji then
+    emoji = '🌎'
+  end
+  local msg = [[You're in ]] .. country
+  vim.notify(msg, vim.log.levels.INFO, { title = 'Where am I?', icon = emoji })
 end, {})
 
 ------------------------
@@ -359,13 +412,7 @@ nnoremap('<leader>ds', ':DiffWithSaved<cr>', true)
 vim.cmd [[
 function s:VisualCalculator() abort
   let save_pos = getpos('.')
-  " Get visual selection
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection ==? 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  let first_expr = join(lines, "\n")
+  let first_expr = GetMotion('gv')
 
   " Get arithmetic operation from user input
   call inputsave()
@@ -376,12 +423,116 @@ function s:VisualCalculator() abort
   let fin_result = eval(str2nr(first_expr) . operation)
 
   " Replace
-  exe 's/\%V' . first_expr . '/' . fin_result . '/'
-
+  call ReplaceMotion('gv', fin_result)
   call setpos('.', save_pos)
 endfunction
 command! -range VisualCalculator call <SID>VisualCalculator()
 vmap <c-r> :VisualCalculator<cr>
+]]
+
+----------
+-- Grep --
+----------
+vim.cmd [[
+" Set grepprg as RipGrep or ag (the_silver_searcher), fallback to grep
+if executable('rg')
+  let &grepprg="rg --vimgrep --no-heading --smart-case --hidden --follow -g '!{" . &wildignore . "}' -uu $*"
+  let g:grep_literal_flag="-F"
+  set grepformat=%f:%l:%c:%m,%f:%l:%m
+elseif executable('ag')
+  let &grepprg='ag --vimgrep --smart-case --hidden --follow --ignore "!{' . &wildignore . '}" $*'
+  let g:grep_literal_flag="-Q"
+  set grepformat=%f:%l:%c:%m
+else
+  let &grepprg='grep -n -r --exclude=' . shellescape(&wildignore) . ' . $*'
+  let g:grep_literal_flag="-F"
+endif
+
+function! RipGrepCWORD(bang, visualmode, ...) abort
+  let search_word = a:1
+
+  if a:visualmode
+    let search_word = GetMotion('gv')
+  endif
+  if search_word ==? ''
+    let search_word = expand('<cword>')
+  endif
+
+  " Set bang command for literal search (no regexp expansion)
+  let search_message_literally = "for " . search_word
+  if a:bang == "!" || a:bang == v:true
+    let search_message_literally = "literally for " . search_word
+    let search_word = get(g:, 'grep_literal_flag', "") . ' ' . shellescape(search_word)
+  endif
+
+  echom 'Searching ' . search_message_literally
+
+  " Silent removes the "press enter to continue" prompt
+  " Bang (!) is for literal search (no regexp expansion)
+  let grepcmd = 'silent grep! ' . search_word
+  execute grepcmd
+endfunction
+]]
+vim.api.nvim_create_user_command('RipGrepCWORD', function(f_opts)
+  vim.fn.RipGrepCWORD(f_opts.bang, false, f_opts.args)
+end, { bang = true, range = true, nargs = '?', complete = 'file_in_path' })
+vim.api.nvim_create_user_command('RipGrepCWORDVisual', function(f_opts)
+  vim.fn.RipGrepCWORD(f_opts.bang, true, f_opts.args)
+end, { bang = true, range = true, nargs = '?', complete = 'file_in_path' })
+vim.keymap.set({ 'n', 'v' }, '<C-f>', function()
+  return vim.fn.mode() == 'v' and ':RipGrepCWORDVisual!<cr>' or ':RipGrepCWORD!<Space>'
+end, opts.no_remap_expr)
+
+------------------------
+-- Run current buffer --
+------------------------
+vim.cmd [[
+" Will attempt to execute the current file based on the `&filetype`
+" You need to manually map the filetypes you use most commonly to the
+" correct shell command.
+function! ExecuteFile()
+  let l:filetype_to_command = {
+        \   'javascript': 'node',
+        \   'python': 'python3',
+        \   'html': 'open',
+        \   'sh': 'bash'
+        \ }
+  call inputsave()
+  let sure = input('Are you sure you want to run the current file? (y/n): ')
+  call inputrestore()
+  if sure !=# 'y'
+    return ''
+  endif
+  echo ''
+  let l:cmd = get(l:filetype_to_command, &filetype, 'bash')
+  :%y
+  new | 0put
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  exe '%!'.l:cmd
+  normal! ggO
+  call setline(1, 'Output of ' . l:cmd . ' command:')
+  normal! yypVr=o
+endfunction
+]]
+nnoremap('<F3>', ':call ExecuteFile()<CR>', true)
+
+----------------------------
+-- Sort Json Array by key --
+----------------------------
+vim.cmd [[
+function s:JsonSortArrayByKey() abort
+  call inputsave()
+  let sort_key = input('Sort by key: ')
+  call inputrestore()
+  let save_pos = getpos('.')
+  let save_pos[2] = save_pos[2] - 1
+  let entire_selection = GetMotion('gv')
+  let formatted_selection = trim(system("jq 'sort_by(" . sort_key . ")'", entire_selection))
+  call ReplaceMotion('gv', formatted_selection)
+  call setpos('.', save_pos)
+  normal! gv=
+endfunction
+command! -range JsonSortArrayByKey call <SID>JsonSortArrayByKey()
 ]]
 
 ----------

@@ -10,6 +10,7 @@ local M = {
     'onsails/lspkind-nvim',
     { 'tzachar/cmp-tabnine', build = './install.sh' },
     'hrsh7th/cmp-nvim-lua',
+    'Exafunction/codeium.nvim',
     'hrsh7th/cmp-nvim-lsp',
     'hrsh7th/cmp-buffer',
     'hrsh7th/cmp-path',
@@ -30,7 +31,6 @@ local M = {
 M.config = function()
   local cmp = require 'cmp'
   local luasnip = require 'luasnip'
-  local lspkind = require 'lspkind'
   local compare = require 'cmp.config.compare'
   local tabnine = require 'cmp_tabnine.config'
   local has_words_before = function()
@@ -39,55 +39,58 @@ M.config = function()
   end
 
   local source_mapping = {
-    nvim_lsp = '[LSP]',
-    luasnip = '[Snpt]',
-    cmp_tabnine = '[TN]',
-    nvim_lua = '[Vim]',
-    path = '[Path]',
     buffer = '[Buffer]',
+    cmdline = '[Cmd]',
+    cmp_tabnine = '[TN]',
+    codeium = '[Code]',
     copilot = '[CP]',
     git = '[Git]',
+    luasnip = '[Snpt]',
+    nvim_lsp = '[LSP]',
+    nvim_lua = '[Vim]',
+    path = '[Path]',
     ['vim-dadbod-completion'] = '[DB]',
   }
+  local custom_kinds = {
+    TabNine = '',
+    Codeium = '',
+  }
 
+  -- custom highlights
+  local custom_kinds_hl = {
+    Codeium = 'CmpItemKindCodeium',
+  }
+  vim.api.nvim_set_hl(0, 'CmpItemKindTabNine', { link = 'Green' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindCodeium', { link = 'Green' })
   cmp.setup {
     native_menu = false,
     formatting = {
-      format = lspkind.cmp_format {
-        mode = 'symbol_text', -- options: 'text', 'text_symbol', 'symbol_text', 'symbol'
-        preset = 'codicons',
-        maxwidth = 40, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
-
-        -- The function below will be called before any actual modifications from lspkind
-        -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
-        before = function(entry, vim_item)
-          vim_item.kind = lspkind.presets.default[vim_item.kind]
-          vim_item.menu = source_mapping[entry.source.name]
-          -- check if entry.source.name is in source_mapping
-          if not source_mapping[entry.source.name] then
-            vim_item.menu = '[' .. entry.source.name .. ']'
-          end
-          if entry.source.name == 'cmp_tabnine' then
-            local detail = (entry.completion_item.data or {}).detail
-            vim_item.kind = ''
-            if detail and detail:find '.*%%.*' then
-              vim_item.kind = vim_item.kind .. ' ' .. detail
-            end
-
-            if (entry.completion_item.data or {}).multiline then
-              vim_item.kind = vim_item.kind .. ' ' .. '[ML]'
-            end
+      format = function(entry, vim_item)
+        local lspkind = require 'lspkind'
+        local mode = 'symbol'
+        local preset = 'default'
+        lspkind.symbol_map = vim.tbl_extend('force', lspkind.presets[preset], custom_kinds)
+        if custom_kinds_hl[vim_item.kind] then
+          vim_item.kind_hl_group = custom_kinds_hl[vim_item.kind]
+        end
+        vim_item.kind = lspkind.symbolic(vim_item.kind, { mode = mode })
+        vim_item.menu = source_mapping[entry.source.name]
+        if entry.source.name == 'cmp_tabnine' then
+          local detail = (entry.completion_item.labelDetails or {}).detail
+          if detail and detail:find '.*%%.*' then
+            vim_item.kind = vim_item.kind .. ' ' .. detail
           end
 
-          local maxwidth = 80
-          vim_item.abbr = string.sub(vim_item.abbr, 1, maxwidth)
-          return vim_item
-        end,
-      },
+          if (entry.completion_item.data or {}).multiline then
+            vim_item.kind = vim_item.kind .. ' ' .. '[ML]'
+          end
+        end
+        return vim_item
+      end,
     },
     mapping = cmp.mapping.preset.insert {
-      ['<C-Space>'] = cmp.mapping.complete(),
-      ['<C-e>'] = cmp.mapping.abort(),
+      ['<M-Space>'] = cmp.mapping.complete(),
+      -- ['<C-e>'] = cmp.mapping.abort(),
       ['<C-d>'] = cmp.mapping.scroll_docs(4),
       ['<C-u>'] = cmp.mapping.scroll_docs(-4),
       ['<C-j>'] = cmp.mapping(function(fallback)
@@ -156,6 +159,7 @@ M.config = function()
       { name = 'nvim_lua' },
       { name = 'nvim_lsp_signature_help' },
       { name = 'cmp_tabnine' },
+      { name = 'codeium' },
       { name = 'path' },
       { name = 'buffer', keyword_length = 4 },
     },
@@ -226,7 +230,6 @@ M.config = function()
   cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done { map_char = { tex = '' } })
 
   require('luasnip.loaders.from_vscode').lazy_load()
-  require('luasnip.loaders.from_snipmate').lazy_load()
 end
 
 return M

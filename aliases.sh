@@ -73,6 +73,18 @@ function gparamsp () {
     aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
 }
 
+function dparamsp () {
+  aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r
+}
+
+function aws_p () {
+  export AWS_PROFILE=$1
+}
+
+function aws_ecr_login () {
+  aws ecr get-login-password --region $(aws configure get region --output text) | docker login --username AWS --password-stdin $(aws sts get-caller-identity | jq '.Account' -r).dkr.ecr.$(aws configure get region --output text).amazonaws.com
+}
+
 ### Azure functions ###
 # Access to the right context of Azure
 function azureprod() {
@@ -83,6 +95,26 @@ function azureprod() {
 function azuredev() {
   az account set --name 'Spot Dev'
   az config set defaults.group=spotinst-dev --local
+}
+
+function azuredevsc() {
+  az account set --name 'azure-dev-single-cloud'
+  az config set defaults.group=spot-sc-az-dev-rg --local
+}
+
+function azuremgmt() {
+  az account set --name 'azure-mgmt-single-cloud'
+}
+
+function az_bastion_mgmt() {
+  bastion_name=bs-mgmt-eus-01
+  bastion_resource_group=rg-netw-mgmt-01
+  target_vm_resource_id=/subscriptions/de935d00-563f-457c-9561-4e5a7051df5b/resourceGroups/rg-netw-mgmt-01/providers/Microsoft.Compute/virtualMachines/bastion-vm
+  az network bastion ssh \
+    --name "$bastion_name" \
+    --resource-group "$bastion_resource_group" \
+    --target-resource-id "$target_vm_resource_id" \
+    --auth-type AAD
 }
 
 ### Kubernetes functions ###
@@ -151,6 +183,29 @@ function get_pods_of_svc() {
 
 function rmpods() {
   for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i ;done
+}
+
+argocd_web () {
+	argocd_ingress=$(kubectl get ingress -n argocd --no-headers -o custom-columns=":metadata.name" | grep argocd-server)
+	ingress_host=https://$(kubectl get ingress -n argocd "${argocd_ingress}" -ojson | jq -r '.spec.rules[].host')
+	creds=$(kubectl get secret -n argocd argocd-initial-admin-secret -ojson | jq '.data | with_entries(.value |= @base64d)')
+	if [[ -n $1 ]] && [[ $1 == "-f" ]]
+	then
+		kubectl port-forward -n argocd svc/argocd-server 8080:443 &
+		CMDPID=$!
+		ingress_host="http://localhost:8080"
+		echo "waiting for port-forward to start"
+		while ! lsof -nP -iTCP:8080 | grep --color LISTEN
+		do
+			echo "port 8080 is still not open"
+			sleep 1
+		done
+		echo "Port forward for svc/argocd-server started on port 8080"
+		echo "To kill, run 'kill $CMDPID' or exit the shell"
+	fi
+	echo "${creds}"
+	jq -r '.password' <<< "${creds}" | pbcopy
+	open "${ingress_host}"
 }
 
 fdf() {
@@ -238,9 +293,11 @@ alias zoom='open -a "zoom.us"'
 alias ssv="/usr/local/bin/ssv.sh awsjump"
 alias ssvd="/usr/local/bin/ssv.sh devjump"
 alias watch='watch '
-alias tgrmtrace="rm -f aws-provider.tf backend.tf terragrunt_variables.tf versions.tf"
+alias tgrmtrace="rm -rf aws-provider.tf backend.tf terragrunt_variables.tf versions.tf azure-provider.tf .azure"
 alias tf='terraform'
 alias tg='terragrunt'
 alias awsdev='export AWS_PROFILE=dev'
+alias awsdyndev='export AWS_PROFILE=dynamic-dev'
 alias awsprod='export AWS_PROFILE=default'
 
+alias update-nvim-nightly='asdf uninstall neovim nightly && asdf install neovim nightly'

@@ -14,18 +14,16 @@ local function add_prefix(actions, prefix)
 end
 
 M.add_actions = function(prefix, actions)
-  local actions_prefixed = {}
+  local actions_prefixed = actions
   if prefix ~= nil then
     actions_prefixed = add_prefix(actions, prefix)
-  else
-    actions_prefixed = actions
   end
   M.actions = vim.tbl_extend('force', M.actions, actions_prefixed)
 end
 
 M.setup = function()
   nmap('<leader>a', function()
-    vim.ui.select(vim.tbl_keys(M.actions), { prompt = 'Choose action (' .. vim.tbl_count(M.actions) .. ' actions)' }, function(choice)
+    vim.ui.select(vim.tbl_keys(M.actions), { prompt = 'Choose action❯ ' }, function(choice)
       if choice then
         M.actions[choice]()
       end

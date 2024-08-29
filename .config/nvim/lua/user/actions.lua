@@ -70,17 +70,41 @@ return {
   ['Indent block forward (<leader>gt)'] = function()
     vim.cmd [[normal! v%koj$>]]
   end,
-  ['Open all folds (zR / <leader>fo)'] = function()
+  ['[Folds] Open all folds (zR / <leader>fo)'] = function()
     vim.cmd 'normal! zR'
   end,
-  ['Open fold (za / <leader>ff)'] = function()
+  ['[Folds] Open fold (za / <leader>ff)'] = function()
     vim.cmd 'normal! za'
   end,
-  ['Open all folds folds under the cursor (level fold) (<leader>fl)'] = function()
+  ['[Folds] Open all folds folds under the cursor (level fold) (<leader>fl)'] = function()
     vim.cmd 'normal! zazczA'
   end,
-  ['Close all folds (<leader>fc)'] = function()
+  ['[Folds] Close all folds (<leader>fc)'] = function()
     vim.cmd 'normal! zM'
+  end,
+  ['Where am I?'] = function()
+    vim.cmd.Whereami()
+  end,
+  ['Autocommand to reload the file'] = function()
+    if vim.api.nvim_buf_get_option(0, 'filetype') ~= 'lua' then
+      pretty_print('Filetype is not lua!', [[🖥️]], vim.log.levels.ERROR)
+      return
+    end
+
+    local text = [[
+-- Reload the file when it changes on disk
+vim.api.nvim_create_autocmd('BufWritePost', {
+  buffer = 0,
+  command = 'luafile %'
+})
+vim.keymap.set('n', 'bla', function()
+  vim.notify('hello!')
+end)
+    ]]
+    -- prepend those lines to the beggining of the file
+    vim.api.nvim_buf_set_lines(0, 0, 0, false, vim.split(text, '\n'))
+    vim.cmd.write()
+    vim.cmd 'luafile %'
   end,
   ['Duplicate / Copy number of lines ({count}<leader>cp)'] = function()
     vim.ui.input({ prompt = 'Enter how many lines down: ' }, function(lines_down)
@@ -122,30 +146,33 @@ return {
       end)
     end)
   end,
-  ['Toggle Terminal (<F6>)'] = function()
-    vim.cmd.FloatermToggle()
-  end,
-  ['Create a new terminal window (<F7>)'] = function()
-    vim.cmd.FloatermNew()
-  end,
-  ['Move to next terminal window (<F8>)'] = function()
-    vim.cmd.FloatermNext()
-  end,
-  ['Move to previous terminal window'] = function()
-    vim.cmd.FloatermPrev()
+  ['Save current buffer as temp'] = function()
+    local ft = vim.api.nvim_buf_get_option(0, 'filetype')
+    if ft == '' then
+      vim.ui.select(vim.fn.getcompletion('', 'filetype'), { prompt = 'Filetype' }, function(selected)
+        if not selected then
+          pretty_print 'Canceled.'
+          return
+        end
+        vim.cmd('set filetype=' .. selected)
+        -- save with the filetype extension
+        vim.cmd('write ' .. vim.fn.tempname() .. '.' .. selected)
+        vim.cmd 'edit'
+      end)
+    else
+      vim.cmd('write ' .. vim.fn.tempname() .. '.' .. ft)
+      vim.cmd 'edit'
+    end
   end,
   ['Find files (<C-p>)'] = function()
-    require('telescope.builtin').find_files()
+    vim.cmd 'FzfLua files'
   end,
   ['Find buffers (<C-b>)'] = function()
-    require('telescope.builtin').buffers()
+    vim.cmd 'FzfLua buffers'
   end,
   ['Open Nvim Tree File Browser (<C-o>)'] = function()
     local api = require 'nvim-tree.api'
     api.tree.toggle()
-  end,
-  ['Resize panes (<C-e>)'] = function()
-    vim.fn.feedkeys(T '<C-e>')
   end,
   ['Close all notifications (<leader>x)'] = function()
     require('notify').dismiss { pending = true, silent = true }
@@ -183,16 +210,13 @@ return {
   ['Split long bash line (<leader>\\'] = function()
     vim.fn.feedkeys(T '<leader>' .. [[\]])
   end,
-  ['Delete all hidden buffers (:BDelete hidden)'] = function()
-    vim.cmd 'BDelete hidden'
-  end,
-  ['Delete current buffer (<leader>bd)'] = function()
-    vim.fn.feedkeys(T '<leader>' .. 'bd')
-  end,
-  ['Yaml to Json (:Yaml2Json)'] = function()
+  ['[YAML] Yaml to Json (:Yaml2Json)'] = function()
     vim.cmd.Yaml2Json()
   end,
-  ['Json to Yaml (:Json2Yaml)'] = function()
+  ['[YAML] Add YAML Schema Modeline'] = function()
+    require('user.additional-schemas').init()
+  end,
+  ['[JSON] Json to Yaml (:Json2Yaml)'] = function()
     vim.cmd.Json2Yaml()
   end,
   ['Change indent size (<leader>cii)'] = function()
@@ -204,7 +228,7 @@ return {
     vim.cmd.retab()
     vim.opt.expandtab = original_expandtab
   end,
-  ['Diff unsaved with saved file (<leader>ds)'] = function()
+  ['[Diff] unsaved with saved file (<leader>ds)'] = function()
     vim.fn.feedkeys(T '<leader>' .. 'ds')
   end,
 }

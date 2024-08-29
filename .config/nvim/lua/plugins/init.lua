@@ -2,105 +2,62 @@ local utils = require 'user.utils'
 local nmap = utils.nmap
 
 local M = {
-  -------------------
-  --   Colorscheme --
-  -------------------
-  -- {
-  --   'navarasu/onedark.nvim',
-  --   config = function()
-  --     require('onedark').setup {
-  --       style = 'dark',
-  --       highlights = {
-  --         EndOfBuffer = { fg = '#61afef' },
-  --       },
-  --     }
-  --     require('onedark').load()
-  --   end,
-  -- },
-  -- {
-  --   'uloco/bluloco.nvim',
-  --   enabled = false,
-  --   lazy = false,
-  --   priority = 1000,
-  --   dependencies = { 'rktjmp/lush.nvim' },
-  --   config = function()
-  --     vim.cmd [[colorscheme bluloco-dark]]
-  --   end,
-  -- },
-  {
-    'sainnhe/gruvbox-material',
-    config = function()
-      -- load the colorscheme here
-      vim.cmd [[
-        let g:gruvbox_material_better_performance = 1
-        let g:gruvbox_material_background = 'hard' " soft | medium | hard
-        colorscheme gruvbox-material
-      ]]
-    end,
-  },
-  {
-    'dstein64/vim-startuptime',
-    cmd = 'StartupTime',
-  },
-
   ------------------------------------
   -- Language Server Protocol (LSP) --
   ------------------------------------
   {
     'folke/trouble.nvim',
-    config = true,
+    opts = {},
     cmd = 'TroubleToggle',
   },
-  -- {
-  --   'vim-scripts/groovyindent-unix',
-  --   ft = { 'groovy', 'Jenkinsfile' },
-  -- },
   {
     'sam4llis/nvim-lua-gf',
     ft = 'lua',
   },
-  -- {
-  --   'martinda/Jenkinsfile-vim-syntax',
-  --   ft = { 'groovy', 'Jenkinsfile' },
-  -- },
+  {
+    'milisims/nvim-luaref',
+    ft = 'lua',
+  },
   {
     'chr4/nginx.vim',
     ft = 'nginx',
   },
   {
     'mosheavni/vim-kubernetes',
-    event = 'VeryLazy',
-  },
-  -- {
-  --   'towolf/vim-helm',
-  --   ft = { 'yaml', 'yaml.gotexttmpl' },
-  -- },
-  { 'cuducos/yaml.nvim', ft = 'yaml' },
-  {
-    'phelipetls/jsonpath.nvim',
-    ft = 'json',
+    ft = 'yaml',
     config = function()
-      vim.api.nvim_buf_create_user_command(0, 'JsonPath', function()
-        local json_path = require('jsonpath').get()
-        local register = '+'
-        vim.fn.setreg(register, json_path)
-        vim.notify('Copied ' .. json_path .. ' to register ' .. register, vim.log.levels.INFO, { title = 'JsonPath' })
-      end, {})
+      require('user.menu').add_actions('Kubernetes', {
+        ['Apply (:KubeApply)'] = function()
+          vim.cmd [[KubeApply]]
+        end,
+        ['Apply Directory (:KubeApplyDir)'] = function()
+          vim.cmd [[KubeApplyDir]]
+        end,
+        ['Create (:KubeCreate)'] = function()
+          vim.cmd [[KubeCreate]]
+        end,
+        ['Decode Secret (:KubeDecodeSecret)'] = function()
+          vim.cmd [[KubeDecodeSecret]]
+        end,
+        ['Delete (:KubeDelete)'] = function()
+          vim.cmd [[KubeDelete]]
+        end,
+        ['Delete Dir (:KubeDeleteDir)'] = function()
+          vim.cmd [[KubeDeleteDir]]
+        end,
+        ['Encode Secret (:KubeEncodeSecret)'] = function()
+          vim.cmd [[KubeEncodeSecret]]
+        end,
+        ['Recreate (:KubeRecreate)'] = function()
+          vim.cmd [[KubeRecreate]]
+        end,
+      })
     end,
   },
   {
     'chrisbra/vim-sh-indent',
     ft = { 'sh', 'bash', 'zsh' },
   },
-  {
-    'milisims/nvim-luaref',
-    event = 'VeryLazy',
-  },
-  {
-    'nanotee/luv-vimdocs',
-    event = 'VeryLazy',
-  },
-  { 'cuducos/yaml.nvim', ft = 'yaml' },
 
   -----------------------------
   -- AI and smart completion --
@@ -118,11 +75,23 @@ local M = {
   --   end,
   -- },
   {
+    'David-Kunz/gen.nvim',
+    cmd = { 'Gen' },
+  },
+  {
+    'Exafunction/codeium.nvim',
+    lazy = true,
+    config = function()
+      require('codeium').setup {}
+    end,
+  },
+  {
     'zbirenbaum/copilot.lua',
     event = 'InsertEnter',
     config = function()
       vim.schedule(function()
         require('copilot').setup {
+          filetypes = { ['*'] = true },
           panel = {
             enabled = true,
             auto_refresh = false,
@@ -193,20 +162,69 @@ local M = {
     keys = { { 'ga', '<Plug>(EasyAlign)', mode = { 'v', 'n' } } },
   },
   {
-    'nguyenvukhang/nvim-toggler',
+    'AndrewRadev/switch.vim',
     keys = {
       { 'gs', nil, { 'n', 'v' } },
     },
-    opts = {
-      remove_default_keybinds = true,
-      inverses = {
-        ['enable'] = 'disable',
-        ['internet-facing'] = 'internal',
-      },
-    },
-    config = function(_, opts)
-      require('nvim-toggler').setup(opts)
-      vim.keymap.set({ 'n', 'v' }, 'gs', require('nvim-toggler').toggle)
+    config = function()
+      local fk = [=[\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>]=]
+      local sk = [=[\<\(\u\l\+\)\(\u\l\+\)\+\>]=]
+      local tk = [=[\<\(\l\+\)\(_\l\+\)\+\>]=]
+      local fok = [=[\<\(\u\+\)\(_\u\+\)\+\>]=]
+      local fik = [=[\<\(\l\+\)\(-\l\+\)\+\>]=]
+      vim.g['switch_custom_definitions'] = {
+        vim.fn['switch#NormalizedCaseWords'] { 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday' },
+        vim.fn['switch#NormalizedCase'] { 'yes', 'no' },
+        vim.fn['switch#NormalizedCase'] { 'on', 'off' },
+        vim.fn['switch#NormalizedCase'] { 'left', 'right' },
+        vim.fn['switch#NormalizedCase'] { 'up', 'down' },
+        vim.fn['switch#NormalizedCase'] { 'enable', 'disable' },
+        { '==', '!=' },
+        {
+          [fk] = [=[\=toupper(submatch(1)) . submatch(2)]=],
+          [sk] = [=[\=tolower(substitute(submatch(0), '\(\l\)\(\u\)', '\1_\2', 'g'))]=],
+          [tk] = [=[\U\0]=],
+          [fok] = [=[\=tolower(substitute(submatch(0), '_', '-', 'g'))]=],
+          [fik] = [=[\=substitute(submatch(0), '-\(\l\)', '\u\1', 'g')]=],
+        },
+      }
+    end,
+    init = function()
+      local custom_switches = require('user.utils').augroup 'CustomSwitches'
+      vim.api.nvim_create_autocmd('FileType', {
+        group = custom_switches,
+        pattern = { 'gitrebase' },
+        callback = function()
+          vim.b['switch_custom_definitions'] = {
+            { 'pick', 'reword', 'edit', 'squash', 'fixup', 'exec', 'drop' },
+          }
+        end,
+      })
+      -- (un)check markdown buxes
+      vim.api.nvim_create_autocmd('FileType', {
+        group = custom_switches,
+        pattern = { 'markdown' },
+        callback = function()
+          local fk = [=[\v^(\s*[*+-] )?\[ \]]=]
+          local sk = [=[\v^(\s*[*+-] )?\[x\]]=]
+          local tk = [=[\v^(\s*[*+-] )?\[-\]]=]
+          local fok = [=[\v^(\s*\d+\. )?\[ \]]=]
+          local fik = [=[\v^(\s*\d+\. )?\[x\]]=]
+          local sik = [=[\v^(\s*\d+\. )?\[-\]]=]
+          vim.b['switch_custom_definitions'] = {
+            {
+              [fk] = [=[\1[x]]=],
+              [sk] = [=[\1[-]]=],
+              [tk] = [=[\1[ ]]=],
+            },
+            {
+              [fok] = [=[\1[x]]=],
+              [fik] = [=[\1[-]]=],
+              [sik] = [=[\1[ ]]=],
+            },
+          }
+        end,
+      })
     end,
   },
   {
@@ -217,8 +235,17 @@ local M = {
     },
   },
   {
-    'windwp/nvim-ts-autotag',
-    ft = { 'html', 'javascript', 'jsx', 'markdown', 'typescript', 'xml' },
+    'https://github.com/atusy/treemonkey.nvim',
+    lazy = true,
+    init = function()
+      vim.keymap.set({ 'x', 'o' }, 'm', function()
+        require 'nvim-treesitter.configs'
+        require('treemonkey').select {
+          ignore_injections = false,
+          action = require('treemonkey.actions').unite_selection,
+        }
+      end)
+    end,
   },
   {
     'axelvc/template-string.nvim',
@@ -229,10 +256,10 @@ local M = {
   {
     'mizlan/iswap.nvim',
     cmd = { 'ISwap', 'ISwapWith' },
-    init = function()
-      nmap('<leader>sw', ':ISwapWith<CR>')
-    end,
-    config = true,
+    keys = {
+      { '<leader>sw', '<cmd>ISwap<CR>' },
+    },
+    opts = {},
   },
   {
     'vim-scripts/ReplaceWithRegister',

@@ -30,7 +30,7 @@ M.open_url = function(url)
 end
 
 M.open_url_under_cursor = function()
-  local cword = vim.fn.expand '<cWORD>'
+  local cword = vim.fn.expand '<cfile>'
 
   -- Remove surronding quotes if exist
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -43,7 +43,14 @@ M.open_url_under_cursor = function()
 
   -- If string matches `user/repo`
   if string.match(url, [[.*/.*]]) then
-    return M.open_url(M.url_prefix .. '/' .. url)
+    local suffix = ''
+    -- check if string has @
+    if string.match(url, [[.*@.*]]) then
+      suffix = '/tree/' .. string.gsub(url, [[.*@(.*)]], '%1')
+      url = string.gsub(url, [[(.*)@.*]], '%1')
+    end
+
+    return M.open_url(M.url_prefix .. '/' .. url .. suffix)
   end
 end
 

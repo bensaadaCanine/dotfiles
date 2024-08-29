@@ -2,8 +2,6 @@ local utils = require 'user.utils'
 local autocmd = utils.autocmd
 local augroup = utils.augroup
 local nnoremap = utils.nnoremap
-local fn = vim.fn
-local cmd = vim.cmd
 
 local reload_file_group = augroup 'ReloadFile'
 autocmd({ 'FocusGained', 'BufEnter' }, {
@@ -30,7 +28,7 @@ autocmd('UIEnter', {
   callback = function()
     vim.defer_fn(function()
       if vim.fn.filereadable 'startuptime.txt' == 1 then
-        local tail = vim.fn.system { 'tail', '-n3', 'startuptime.txt' }
+        local tail = vim.system({ 'tail', '-n3', 'startuptime.txt' }, { text = true }):wait().stdout
         ---@diagnostic disable-next-line: param-type-mismatch
         vim.notify(tail)
         return vim.fn.delete 'startuptime.txt'
@@ -119,7 +117,7 @@ autocmd({ 'FileType' }, {
 })
 autocmd({ 'BufRead' }, {
   group = special_filetypes,
-  pattern = '*/plugins/*.lua',
+  pattern = { '*/plugins/*.lua', '.github/workflows/*.y*ml' },
   command = 'lua require("user.open-url").setup()',
 })
 
@@ -138,15 +136,15 @@ autocmd({ 'QuickFixCmdPost' }, {
   command = 'copen',
 })
 autocmd({ 'FileType' }, {
-  desc = 'Open quickfix results in a new split',
+  desc = 'Quickfix window settings',
   group = quickfix_au,
   pattern = 'qf',
   callback = function()
     local open_quickfix = function(new_split_cmd)
-      local qf_idx = fn.line '.'
-      cmd 'wincmd p'
-      cmd(new_split_cmd)
-      cmd(qf_idx .. 'cc')
+      local qf_idx = vim.fn.line '.'
+      vim.cmd 'wincmd p'
+      vim.cmd(new_split_cmd)
+      vim.cmd(qf_idx .. 'cc')
     end
     nnoremap('<c-v>', function()
       open_quickfix 'vnew'
@@ -155,15 +153,40 @@ autocmd({ 'FileType' }, {
     nnoremap('<c-x>', function()
       open_quickfix 'split'
     end, { buffer = true })
-    -- "n", "<C-v>", :call <SID>OpenQuickfix("vnew")<CR>
-    -- "n", "<C-x>", :call <SID>OpenQuickfix("split")<CR>
+
+    local function remove_qf_item()
+      local curqfidx = vim.fn.line '.'
+      local qfall = vim.fn.getqflist()
+      table.remove(qfall, curqfidx)
+      vim.fn.setqflist(qfall, 'r')
+      vim.cmd(curqfidx + 1 .. 'cfirst')
+      vim.cmd 'copen'
+    end
+    vim.api.nvim_create_user_command('RemoveQFItem', remove_qf_item, {})
+    nnoremap('dd', '<CMD>RemoveQFItem<CR>', { buffer = true })
+
+    -- map yy to yank file name
+    nnoremap('yy', function()
+      local line = vim.api.nvim_get_current_line()
+      local filename = vim.split(line, ' ')[1]
+      vim.fn.setreg('"', filename)
+    end, { buffer = true })
   end,
+})
+
+-- autocmd for terminal buffers
+local term_au = augroup 'MosheTerm'
+autocmd({ 'TermOpen' }, {
+  group = term_au,
+  pattern = '*',
+  command = 'startinsert',
 })
 
 -- custom settings
 local CustomSettingsGroup = augroup 'CustomSettingsGroup'
 autocmd('BufWritePost', {
   group = CustomSettingsGroup,
+  desc = 'make sh file executable if a shebang is deteced',
   pattern = '*',
   callback = function(args)
     local shebang = vim.api.nvim_buf_get_lines(0, 0, 1, true)[1]
@@ -182,5 +205,4 @@ autocmd('BufWritePost', {
     vim.uv.fs_chmod(filename, bit.bor(fileinfo.mode, 493))
   end,
   once = false,
-  desc = 'Mark script files with shebangs as executable on write.',
 })

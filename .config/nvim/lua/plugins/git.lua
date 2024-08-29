@@ -5,7 +5,7 @@ end
 local actions = function()
   return {
     ['Change branch (F4)'] = function()
-      require('user.git-branches').open()
+      vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<F4>', true, true, true))
     end,
     ['Checkout new branch (:Gcb {new_branch})'] = function()
       _G.create_new_branch { args = '' }
@@ -14,35 +14,8 @@ local actions = function()
       vim.cmd 'call Enter_Wip_Moshe()'
       actions_pretty_print 'Created a work in progress commit.'
     end,
-    ['Diff File History'] = function()
-      vim.ui.input({ prompt = 'Enter file path (empty for current file): ' }, function(file_to_check)
-        if file_to_check == '' then
-          file_to_check = '%'
-        end
-
-        vim.cmd('DiffviewFileHistory ' .. file_to_check)
-      end)
-    end,
-    ['Diff with branch'] = function()
-      vim.ui.input({ prompt = 'Enter branch to diff with: ' }, function(branch_to_diff)
-        if not branch_to_diff then
-          actions_pretty_print 'Canceled.'
-          return
-        end
-        vim.cmd('DiffviewOpen origin/' .. branch_to_diff .. '..HEAD')
-      end)
-    end,
-    ['Diff file with branch'] = function()
-      vim.ui.input({ prompt = 'Enter branch to diff with: ' }, function(branch_to_diff)
-        if not branch_to_diff then
-          actions_pretty_print 'Canceled.'
-          return
-        end
-        vim.cmd('DiffviewFileHistory ' .. branch_to_diff)
-      end)
-    end,
-    ['Diff close'] = function()
-      vim.cmd 'DiffviewClose'
+    ['Set upstream to HAED'] = function()
+      vim.cmd('G branch --set-upstream-to=origin/' .. vim.fn.FugitiveHead())
     end,
     ['Blame'] = function()
       vim.cmd 'G blame'
@@ -135,16 +108,50 @@ local actions = function()
       end)
     end,
     ['Push (:Gp)'] = function()
-      vim.cmd 'Gp'
+      vim.cmd.Gp()
     end,
     ['Pull (:Gl)'] = function()
-      vim.cmd 'Gl'
+      vim.cmd.Gl()
     end,
     ['Add (Stage) All'] = function()
       vim.cmd 'G add -A'
     end,
     ['Unstage All'] = function()
       vim.cmd 'G reset'
+    end,
+  }
+end
+local diff_actions = function()
+  return {
+    ['[Diffview] Diff File History'] = function()
+      vim.ui.input({ prompt = 'Enter file path (empty for current file): ' }, function(file_to_check)
+        if file_to_check == '' then
+          file_to_check = '%'
+        end
+
+        vim.cmd('DiffviewFileHistory ' .. file_to_check)
+      end)
+    end,
+    ['[Diffview] Diff with branch'] = function()
+      vim.ui.input({ prompt = 'Enter branch to diff with: ' }, function(branch_to_diff)
+        if not branch_to_diff then
+          actions_pretty_print 'Canceled.'
+          return
+        end
+        vim.cmd('DiffviewOpen origin/' .. branch_to_diff .. '..HEAD')
+      end)
+    end,
+    ['[Diffview] Diff file with branch'] = function()
+      vim.ui.input({ prompt = 'Enter branch to diff with: ' }, function(branch_to_diff)
+        if not branch_to_diff then
+          actions_pretty_print 'Canceled.'
+          return
+        end
+        vim.cmd('DiffviewFileHistory ' .. branch_to_diff)
+      end)
+    end,
+    ['[Diffview] Diff close'] = function()
+      vim.cmd 'DiffviewClose'
     end,
   }
 end
@@ -243,11 +250,14 @@ endfunction
 
 " Autocmd
 function! s:ftplugin_fugitive() abort
+  " resize 20
+  nnoremap <buffer> <silent> <leader>t :vert term<cr>
   nnoremap <buffer> <silent> cc :Git commit --quiet<CR>
   nnoremap <buffer> <silent> gl :Gl<CR>
   nnoremap <buffer> <silent> gp :Gp<CR>
   nnoremap <buffer> <silent> pr :silent! !cpr<CR>
   nnoremap <buffer> <silent> wip :call Enter_Wip_Moshe()<cr>
+  nnoremap <buffer> <silent> R :e<cr>
 
 endfunction
 augroup moshe_fugitive
@@ -269,59 +279,9 @@ function! ToggleGStatus()
 endfunction
 command! ToggleGStatus :call ToggleGStatus()
 nnoremap <silent> <leader>gg :ToggleGStatus<cr>
-nmap <silent><expr> <leader>gf bufname('.git/index') ? ':exe bufwinnr(bufnr(bufname(".git/index"))) . "wincmd w"<cr>' : ':Git<cr>'
+nmap <silent><expr> <leader>gf bufname('.git/index') ? ':exe bufwinnr(bufnr(bufname(".git/index"))) . "wincmd w"<cr>' : '<cmd>Git<cr>'
 
 nnoremap <leader>gc :Gcd <bar> echom "Changed directory to Git root"<bar>pwd<cr>
-
-" Gdiffrev
-nmap <leader>dh :DiffHistory<Space>
-command! -nargs=? DiffHistory call s:view_git_history('<args>')
-command! DiffFile call s:view_git_history('current_file')
-nmap <silent> <leader>gh :DiffFile<cr>
-
-function! s:view_git_history(...) abort
-  let branch_name = a:1
-  if branch_name ==# 'current_file'
-    0Gclog
-  elseif branch_name !=? ''
-    execute 'Git difftool --name-only ' . branch_name . '...@'
-  else
-    Git difftool --name-only ! !^@
-  endif
-  call s:diff_current_quickfix_entry()
-  " Bind <CR> for current quickfix window to properly set up diff split layout after selecting an item
-  " There's probably a better way to map this without changing the window
-  copen
-  nnoremap <buffer> <CR> <CR><BAR>:call <sid>diff_current_quickfix_entry()<CR>
-  wincmd p
-endfunction
-
-function s:diff_current_quickfix_entry() abort
-  " Cleanup windows
-  for window in getwininfo()
-    if window.winnr !=? winnr() && bufname(window.bufnr) =~? '^fugitive:'
-      exe 'bdelete' window.bufnr
-    endif
-  endfor
-  cc
-  call s:add_mappings()
-  let qf = getqflist({'context': 0, 'idx': 0})
-  if get(qf, 'idx') && type(get(qf, 'context')) == type({}) && type(get(qf.context, 'items')) == type([])
-    let diff = get(qf.context.items[qf.idx - 1], 'diff', [])
-    for i in reverse(range(len(diff)))
-      exe (i ? 'leftabove' : 'rightbelow') 'vert diffsplit' fnameescape(diff[i].filename)
-      call s:add_mappings()
-    endfor
-  endif
-endfunction
-
-function! s:add_mappings() abort
-  nnoremap <buffer>]q :cnext <BAR> :call <sid>diff_current_quickfix_entry()<CR>
-  nnoremap <buffer>[q :cprevious <BAR> :call <sid>diff_current_quickfix_entry()<CR>
-  " Reset quickfix height. Sometimes it messes up after selecting another item
-  11copen
-  wincmd p
-endfunction
 ]]
 
   -------------------------
@@ -349,7 +309,7 @@ endfunction
   ----------------------
   -- Git actions menu --
   ----------------------
-  local the_actions = actions()
+  local the_actions = vim.tbl_extend('force', actions(), diff_actions())
   require('user.menu').add_actions('Git', the_actions)
   nmap('<leader>gm', function()
     vim.ui.select(vim.tbl_keys(the_actions), { prompt = 'Choose git action' }, function(choice)
@@ -363,21 +323,54 @@ end
 local M = {
   {
     'tpope/vim-fugitive',
-    event = 'VeryLazy',
     config = fugitive_config,
-    dependencies = {
-      {
-        'akinsho/git-conflict.nvim',
-        version = '*',
-        opts = {
-          default_mappings = true,
-        },
-      },
+    keys = {
+      '<leader>gb',
+      '<leader>gc',
+      '<leader>gf',
+      '<leader>gg',
+      '<leader>gl',
+      '<leader>gm',
+      '<leader>gp',
     },
+    cmd = { 'G', 'Git', 'Gcb' },
   },
   {
     'mosheavni/vim-to-github',
     cmd = { 'ToGithub' },
+  },
+  {
+    'akinsho/git-conflict.nvim',
+    version = '*',
+    event = 'BufReadPre',
+    config = function()
+      require('git-conflict').setup {
+        default_mappings = true,
+      }
+      require('user.menu').add_actions('GitConflict', {
+        ['Choose Ours'] = function()
+          vim.cmd 'GitConflictChooseOurs'
+        end,
+        ['Choose Theirs'] = function()
+          vim.cmd 'GitConflictChooseTheirs'
+        end,
+        ['Choose Both'] = function()
+          vim.cmd 'GitConflictChooseBoth'
+        end,
+        ['Choose None'] = function()
+          vim.cmd 'GitConflictChooseNone'
+        end,
+        ['Next Conflict'] = function()
+          vim.cmd 'GitConflictNextConflict'
+        end,
+        ['Previous Conflict'] = function()
+          vim.cmd 'GitConflictPrevConflict'
+        end,
+        ['Send conflicts to Quickfix'] = function()
+          vim.cmd 'GitConflictListQf'
+        end,
+      })
+    end,
   },
   {
     'sindrets/diffview.nvim',

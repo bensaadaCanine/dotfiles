@@ -1,7 +1,7 @@
 local actions = function()
   return {
     ['Format (<leader>lp)'] = function()
-      require('plugins.lsp.formatting').format()
+      require('user.lsp.formatting').format()
     end,
     ['Code Actions (<leader>la)'] = function()
       vim.lsp.buf.code_action()
@@ -41,28 +41,9 @@ local actions = function()
       vim.diagnostic.reset()
     end,
     ['Delete Log'] = function()
-      vim.fn.system { 'rm', '-rf', vim.lsp.get_log_path() }
-    end,
-    ['Add YAML Schema Modeline'] = function()
-      require('user.additional-schemas').init()
+      vim.system { 'rm', '-rf', vim.lsp.get_log_path() }
     end,
   }
-end
-
-function _G.lsp_tmp_write(should_delete)
-  local tmp = vim.fn.tempname()
-  vim.cmd(string.format('write %s', tmp))
-  vim.cmd 'edit'
-  -- Create autocmd to delete the file on exit
-  if should_delete then
-    vim.api.nvim_create_autocmd({ 'VimLeavePre' }, {
-      buffer = 0,
-      command = 'delete("' .. tmp .. '")',
-    })
-  end
-  -- load lsp
-  require 'lspconfig'
-  return tmp
 end
 
 local M = {
@@ -135,95 +116,33 @@ local M = {
       docker_compose_language_service = function() end,
     },
   },
-  dependencies = {
-    'nvimtools/none-ls.nvim',
-    'mfussenegger/nvim-jdtls',
-    'folke/lsp-colors.nvim',
-    'williamboman/mason-lspconfig.nvim',
-    'nanotee/nvim-lsp-basics',
-    {
-      'j-hui/fidget.nvim',
-      tag = 'legacy',
-      config = function()
-        require('fidget').setup {
-          text = {
-            spinner = 'moon',
-          },
-        }
-      end,
-    },
-    'b0o/SchemaStore.nvim',
-    {
-      'folke/neodev.nvim',
-      opts = {
-        override = function(_, library)
-          library.enabled = true
-          library.plugins = true
-        end,
-      },
-    },
-    {
-      'someone-stole-my-name/yaml-companion.nvim',
-      config = function()
-        local nnoremap = require('user.utils').nnoremap
-        nnoremap('<leader>cc', ":lua require('yaml-companion').open_ui_select()<cr>", true)
-      end,
-    },
-    'jose-elias-alvarez/typescript.nvim',
-    {
-      'nvimdev/lspsaga.nvim',
-      opts = {
-        finder_action_keys = {
-          edit = '<CR>',
-          vsplit = '<C-v>',
-          split = '<C-x>',
-          quit = 'q',
-        },
-        code_action_lightbulb = {
-          enable = false,
-        },
-        symbol_in_winbar = {
-          enable = true,
-          hide_keyword = false,
-        },
-      },
-      config = true,
-    },
-  },
 }
 
 M.init = function()
-  vim.keymap.set('n', '<leader>ls', function()
-    _G.lsp_tmp_write(true)
-  end)
-
-  vim.keymap.set('n', '<leader>ls', function()
-    _G.lsp_tmp_write(false)
-  end)
+  local start_ls = function()
+    _G.tmp_write { should_delete = false, new = false }
+    -- load lsp
+    require 'lspconfig'
+    vim.cmd.LspStart()
+  end
+  vim.keymap.set('n', '<leader>ls', start_ls)
+  require('user.menu').add_actions('LSP', {
+    ['Start LSP (<leader>ls)'] = function()
+      start_ls()
+    end,
+  })
 end
 
 M.config = function(_, opts)
   require('user.menu').add_actions('LSP', actions())
-  require('plugins.lsp.handlers').setup()
+  require('user.lsp.handlers').setup()
+
+  require('lspconfig.ui.windows').default_options.border = require('user.utils').borders.single_rounded
 
   -- Set formatting of lsp log
   require('vim.lsp.log').set_format_func(vim.inspect)
 
-  -- general LSP config
-  -- show icons in the sidebar
-  local signs = {
-    Error = '',
-    Warn = ' ',
-    Hint = ' ',
-    Info = ' ',
-  }
-
-  for type, icon in pairs(signs) do
-    local hl = 'DiagnosticSign' .. type
-    vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-  end
-
-  local servers = require 'plugins.lsp.servers'
+  local servers = require 'user.lsp.servers'
   ------------------
   -- Capabilities --
   ------------------
@@ -238,11 +157,16 @@ M.config = function(_, opts)
   -----------------
   -- Diagnostics --
   -----------------
+  -- show icons in the sidebar
+  local signs = {
+    [vim.diagnostic.severity.ERROR] = '',
+    [vim.diagnostic.severity.WARN] = ' ',
+    [vim.diagnostic.severity.HINT] = ' ',
+    [vim.diagnostic.severity.INFO] = ' ',
+  }
   vim.diagnostic.config {
+    signs = { text = signs },
     update_in_insert = false,
-    -- underline = {
-    --   severity = { max = vim.diagnostic.severity.INFO },
-    -- },
     virtual_text = {
       severity = { min = vim.diagnostic.severity.WARN },
     },
@@ -291,16 +215,126 @@ M.config = function(_, opts)
   end
 end
 
-local Mason = {
-  'williamboman/mason.nvim',
-  cmd = 'Mason',
-  keys = { { '<leader>cm', '<cmd>Mason<cr>', desc = 'Mason' } },
-  build = ':MasonUpdate',
-  opts = {
-    ui = {
-      border = require('user.utils').float_border,
+M.dependencies = {
+  'nvimtools/none-ls.nvim',
+  'folke/lsp-colors.nvim',
+  {
+    'williamboman/mason.nvim',
+    cmd = 'Mason',
+    keys = { { '<leader>cm', '<cmd>Mason<cr>', desc = 'Mason' } },
+    build = ':MasonUpdate',
+    opts = {
+      ui = {
+        border = require('user.utils').float_border,
+      },
+    },
+  },
+  'williamboman/mason-lspconfig.nvim',
+  'nanotee/nvim-lsp-basics',
+  {
+    'j-hui/fidget.nvim',
+    config = function()
+      require('fidget').setup {
+        progress = {
+          display = {
+            progress_icon = { pattern = 'moon', period = 1 },
+          },
+        },
+      }
+    end,
+  },
+  {
+    'nvimdev/lspsaga.nvim',
+    opts = {
+      finder = {
+        keys = {
+          edit = '<CR>',
+          vsplit = '<C-v>',
+          split = '<C-x>',
+        },
+      },
+      definition = {
+        keys = {
+          edit = '<CR>',
+          vsplit = '<C-v>',
+          split = '<C-x>',
+        },
+      },
+
+      lightbulb = {
+        enable = false,
+        sign = false,
+      },
+      symbol_in_winbar = {
+        enable = true,
+        hide_keyword = false,
+      },
+      outline = {
+        keys = {
+          toggle_or_jump = '<CR>',
+        },
+      },
+    },
+    config = true,
+  },
+  {
+    'folke/neodev.nvim',
+    opts = {
+      override = function(_, library)
+        library.enabled = true
+        library.plugins = true
+      end,
     },
   },
 }
 
-return { M, Mason }
+local language_specific_plugins = {
+  {
+    'mfussenegger/nvim-jdtls',
+    ft = { 'java' },
+  },
+  {
+    'jose-elias-alvarez/typescript.nvim',
+    ft = { 'typescript', 'typescriptreact', 'typescript.tsx', 'javascript' },
+  },
+  { 'cuducos/yaml.nvim', ft = 'yaml' },
+  {
+    'phelipetls/jsonpath.nvim',
+    ft = 'json',
+    config = function()
+      vim.api.nvim_buf_create_user_command(0, 'JsonPath', function()
+        local json_path = require('jsonpath').get()
+        local register = '+'
+        vim.fn.setreg(register, json_path)
+        vim.notify('Copied ' .. json_path .. ' to register ' .. register, vim.log.levels.INFO, { title = 'JsonPath' })
+      end, {})
+      require('user.menu').add_actions('JSON', {
+        ['Copy Json Path to clipboard (:JsonPath)'] = function()
+          vim.cmd [[JsonPath]]
+        end,
+      })
+    end,
+  },
+  {
+    'someone-stole-my-name/yaml-companion.nvim',
+    ft = { 'yaml' },
+    config = function()
+      local nnoremap = require('user.utils').nnoremap
+      nnoremap('<leader>cc', ":lua require('yaml-companion').open_ui_select()<cr>", true)
+      require('user.menu').add_actions('YAML', {
+        ['Change Schema'] = function()
+          require('yaml-companion').open_ui_select()
+        end,
+      })
+    end,
+  },
+  {
+    'b0o/SchemaStore.nvim',
+    ft = { 'yaml' },
+  },
+}
+
+return {
+  M,
+  language_specific_plugins,
+}
