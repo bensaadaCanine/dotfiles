@@ -30,7 +30,7 @@ In your terminal:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 export PATH="/opt/homebrew/bin:${PATH}"
 ```
-## 4. Install Apllications Via Brewfile
+## 4. Install Applications Via Brewfile
 In your terminal:
 ```
 brew bundle --file ~/.dotfiles/Brewfile
