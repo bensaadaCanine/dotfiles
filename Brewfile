@@ -71,18 +71,12 @@ brew "helm"
 brew "hyperkit", link: false
 # Lightweight and flexible command-line JSON processor
 brew "jq"
-# Kubernetes CLI To Manage Your Clusters In Style!
-brew "k9s"
 # Kubernetes command-line interface
 brew "kubernetes-cli"
 # Package manager for kubectl plugins
 brew "krew"
-# Kubernetes prompt info for bash and zsh
-brew "kube-ps1"
 # Tool that can switch between kubectl contexts easily and create aliases
 brew "kubectx"
-# LastPass command-line interface tool
-brew "lastpass-cli"
 # Run a Kubernetes cluster locally
 brew "minikube"
 # Platform built on V8 to build network applications
@@ -161,8 +155,6 @@ brew "hashicorp/tap/terraform-ls"
 brew "spotinst/tap/oceancd"
 # The official CLI for Amazon EKS
 brew "weaveworks/tap/eksctl", link: false
-# Sound and music editor
-cask "ableton-live-lite"
 # View, print, and comment on PDF documents
 cask "adobe-acrobat-reader"
 # AdoptOpenJDK OpenJDK (Java) Development Kit
@@ -177,28 +169,18 @@ cask "disk-inventory-x"
 cask "dropbox"
 cask "font-fira-code"
 cask "font-hack-nerd-font"
-# IDE for Java development - community edition
-cask "intellij-idea-ce"
 # Terminal emulator as alternative to Apple's Terminal app
 cask "iterm2"
 # Keyboard customiser
 cask "karabiner-elements"
 # Open-source keystroke visualiser
 cask "keycastr"
-# Password manager
-cask "lastpass"
-# Kubernetes IDE
-cask "lens"
-# Open-source, KeePass-client and password manager
-cask "macpass"
 # Controls and monitors all fans on Apple computers
 cask "macs-fan-control"
 # Remote desktop client
 cask "microsoft-remote-desktop"
 # Collaboration platform for API development
 cask "postman"
-# IDE for professional Python development
-cask "pycharm"
 # MySQL and compatible databases tool
 cask "querious"
 # MongoDB management tool
