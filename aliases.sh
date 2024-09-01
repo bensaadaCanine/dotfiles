@@ -1,6 +1,6 @@
 ### Helper functions ###
 function _alias_parser() {
-  parsed_alias=`alias -- "$1"`
+  parsed_alias=$(alias -- "$1")
   if [[ $? == 0 ]]; then
     echo $parsed_alias | awk -F\' '{print $2}'
   fi
@@ -9,15 +9,15 @@ function _alias_finder() {
   # log_file=/tmp/moshe_mwatch.log
   # echo "Got in _alias_finder with $*" >> $log_file
   final_result=()
-  for s in `echo $1`;do
-    alias_val=`_alias_parser "$s"`
+  for s in $(echo $1); do
+    alias_val=$(_alias_parser "$s")
     if [[ -n $alias_val ]]; then
       # Handle nested aliases with the same name
       if [[ $alias_val == *"$s"* ]]; then
         # echo "$s is contained in $alias_val" >> $log_file
         final_result+=($alias_val)
       else
-        final_result+=(`_alias_finder "$alias_val"`)
+        final_result+=($(_alias_finder "$alias_val"))
       fi
     else
       final_result+=($s)
@@ -30,26 +30,27 @@ function _alias_finder() {
 function mwatch() {
   # log_file=/tmp/moshe_mwatch.log
   # [[ -f $log_file ]] && cat /dev/null > $log_file || touch $log_file
-  final_alias=`_alias_finder "$*"`
+  final_alias=$(_alias_finder "$*")
   echo $final_alias
   watch --color "$final_alias"
 }
-function docke () {
+function docke() {
   [[ $1 == "r"* ]] && docker ${1#r}
 }
 
-function ssh2 () {
-  in_url=`sed -e 's/ip-//' -e 's/-/./g' <<< "$1" ` ; echo $in_url && ssh $in_url
+function ssh2() {
+  in_url=$(sed -e 's/ip-//' -e 's/-/./g' <<<"$1")
+  echo $in_url && ssh $in_url
 }
-function jsonlint () {
+function jsonlint() {
   pbcopy && open https://jsonlint.com/
 }
-function grl () {
+function grl() {
   grep -rl $* .
 }
 ### Git functions ###
 # Open the github page of the repo you're in, in the browser
-function opengit () {
+function opengit() {
   git remote -v | awk 'NR==1{print $2}' | sed -e "s?:?/?g" -e 's?\.git$??' -e "s?git@?https://?" -e "s?https///?https://?g" | xargs open
 }
 # Create pull request = cpr
@@ -68,20 +69,20 @@ function cpr() {
 }
 
 ### AWS functions ###
-function gparamsp () {
-    parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
-    aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
+function gparamsp() {
+  parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
+  aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
 }
 
-function dparamsp () {
+function dparamsp() {
   aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r
 }
 
-function aws_p () {
+function aws_p() {
   export AWS_PROFILE=$1
 }
 
-function aws_ecr_login () {
+function aws_ecr_login() {
   aws ecr get-login-password --region $(aws configure get region --output text) | docker login --username AWS --password-stdin $(aws sts get-caller-identity | jq '.Account' -r).dkr.ecr.$(aws configure get region --output text).amazonaws.com
 }
 
@@ -118,48 +119,54 @@ function az_bastion_mgmt() {
 }
 
 ### Kubernetes functions ###
-function kdpw () { watch "kubectl describe po $* | tail -20" }
+function kdpw() {
+  watch "kubectl describe po $* | tail -20"
+}
+function kts() {
+  kt $1 -c "spotinst-${1}-container"
+}
 function kgres() {
   kubectl get pod $* \
     -ojsonpath='{range .items[*]}{.spec.containers[*].name}{" memory: "}{.spec.containers..resources.requests.memory}{"/"}{.spec.containers..resources.limits.memory}{" | cpu: "}{.spec.containers..resources.requests.cpu}{"/"}{.spec.containers..resources.limits.cpu}{"\n"}{end}' | sort \
     -u \
     -k1,1 | column -t
-  }
+}
 
 function kgpimg() {
-    kgp $* -ojson | jq '.spec.containers[].image'
+  kgp $* -ojson | jq '.spec.containers[].image'
 }
-function kubedebug () {
+function kubedebug() {
   # image=gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
   local image=mosheavni/net-debug:latest
   local docker_exe=bash
   local pod_name=debug
   local kubectl_args=()
   local processing_k_args=false
-  while test $# -gt 0;do
-    if $processing_k_args;then
+  while test $# -gt 0; do
+    if $processing_k_args; then
       kubectl_args=($kubectl_args $1)
       shift
       continue
     fi
     case $1 in
     # exe provided
-      -e )
-        shift
-        docker_exe=$1
-        ;;
-      -p )
-        shift
-        pod_name=$1
-        ;;
-      -i )
-        shift
-        image=$1
-        ;;
-      * )
-        if [[ "$1" == "--" ]];then
-          processing_k_args=true
-        fi
+    -e)
+      shift
+      docker_exe=$1
+      ;;
+    -p)
+      shift
+      pod_name=$1
+      ;;
+    -i)
+      shift
+      image=$1
+      ;;
+    *)
+      if [[ "$1" == "--" ]]; then
+        processing_k_args=true
+      fi
+      ;;
     esac
     shift
   done
@@ -182,37 +189,35 @@ function get_pods_of_svc() {
 }
 
 function rmpods() {
-  for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i ;done
+  for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i; done
 }
 
-argocd_web () {
-	argocd_ingress=$(kubectl get ingress -n argocd --no-headers -o custom-columns=":metadata.name" | grep argocd-server)
-	ingress_host=https://$(kubectl get ingress -n argocd "${argocd_ingress}" -ojson | jq -r '.spec.rules[].host')
-	creds=$(kubectl get secret -n argocd argocd-initial-admin-secret -ojson | jq '.data | with_entries(.value |= @base64d)')
-	if [[ -n $1 ]] && [[ $1 == "-f" ]]
-	then
-		kubectl port-forward -n argocd svc/argocd-server 8080:443 &
-		CMDPID=$!
-		ingress_host="http://localhost:8080"
-		echo "waiting for port-forward to start"
-		while ! lsof -nP -iTCP:8080 | grep --color LISTEN
-		do
-			echo "port 8080 is still not open"
-			sleep 1
-		done
-		echo "Port forward for svc/argocd-server started on port 8080"
-		echo "To kill, run 'kill $CMDPID' or exit the shell"
-	fi
-	echo "${creds}"
-	jq -r '.password' <<< "${creds}" | pbcopy
-	open "${ingress_host}"
+argocd_web() {
+  argocd_ingress=$(kubectl get ingress -n argocd --no-headers -o custom-columns=":metadata.name" | grep argocd-server)
+  ingress_host=https://$(kubectl get ingress -n argocd "${argocd_ingress}" -ojson | jq -r '.spec.rules[].host')
+  creds=$(kubectl get secret -n argocd argocd-initial-admin-secret -ojson | jq '.data | with_entries(.value |= @base64d)')
+  if [[ -n $1 ]] && [[ $1 == "-f" ]]; then
+    kubectl port-forward -n argocd svc/argocd-server 8080:443 &
+    CMDPID=$!
+    ingress_host="http://localhost:8080"
+    echo "waiting for port-forward to start"
+    while ! lsof -nP -iTCP:8080 | grep --color LISTEN; do
+      echo "port 8080 is still not open"
+      sleep 1
+    done
+    echo "Port forward for svc/argocd-server started on port 8080"
+    echo "To kill, run 'kill $CMDPID' or exit the shell"
+  fi
+  echo "${creds}"
+  jq -r '.password' <<<"${creds}" | pbcopy
+  open "${ingress_host}"
 }
 
 fdf() {
   # remove trailing / from $1
   dir_clean=${1%/}
-  all_files=$(find $dir_clean/* -maxdepth 0 -type d -print 2> /dev/null)
-  dir_to_enter=$(sed "s?$dir_clean/??g" <<< $all_files | fzf)
+  all_files=$(find $dir_clean/* -maxdepth 0 -type d -print 2>/dev/null)
+  dir_to_enter=$(sed "s?$dir_clean/??g" <<<$all_files | fzf)
   cd "$dir_clean/$dir_to_enter" && nvim
 }
 alias pj='fdf ~/github'
