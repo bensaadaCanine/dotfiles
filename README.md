@@ -24,14 +24,21 @@ In your terminal:
 git clone git@github.com:bensaadaCanine/dotfiles.git ~/.dotfiles
 ```
 
-## 3. Install HomeBrew
+## 3. HomeBrew
 In your terminal:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 export PATH="/opt/homebrew/bin:${PATH}"
-```
-## 4. Install Applications Via Brewfile
-In your terminal:
-```
 brew bundle --file ~/.dotfiles/Brewfile
+```
+## 4. Another Installments (!!In iTerm2!!)
+Effuse:
+```
+sudo gem install effuse
+```
+oh-my-zsh:
+```
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 ```
