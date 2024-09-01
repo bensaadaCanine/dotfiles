@@ -2,7 +2,7 @@ export ZSH="/Users/bsaada/.oh-my-zsh"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 export KUBECTL_EXTERNAL_DIFF="kdiff"
-export PATH="${HOME}/.bin:$PATH"
+export PATH="/opt/homebrew/bin:${HOME}/.bin:$PATH"
 
 ZSH_THEME="robbyrussell"
 
