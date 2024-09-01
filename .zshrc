@@ -1,8 +1,8 @@
 export ZSH="/Users/bsaada/.oh-my-zsh"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+export PATH="/opt/homebrew/bin:${HOME}/.bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 export KUBECTL_EXTERNAL_DIFF="kdiff"
-export PATH="/opt/homebrew/bin:${HOME}/.bin:$PATH"
 
 ZSH_THEME="robbyrussell"
 
@@ -57,10 +57,9 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 source ~/aliases.sh
 export EDITOR=nvim
 export AWS_PROFILE=dev
-source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
+source "/usr/local/opt/kube-ps1/kube-ps1.sh"
 RPS1="[%B%F{green}AWS%f:%F{red}\${AWS_PROFILE}%b%f] [%B%F{blue}Azure%f:%F{red}\$(az account show | jq '.name' -r)%b%f] \$(kube_ps1)"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
-. "$HOME/.asdf/asdf.sh"
