@@ -31,10 +31,10 @@ In your terminal:
 export PATH="/opt/homebrew/bin:${PATH}"
 brew bundle --file ~/.dotfiles/Brewfile
 ```
-## 4. Another Installments
+## 4. Another Installments (!!In iTerm2!!)
 Effuse:
 ```
-gem install effuse
+sudo gem install effuse
 ```
 oh-my-zsh:
 ```
@@ -42,4 +42,3 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 ```
-brew install 
