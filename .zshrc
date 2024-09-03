@@ -12,6 +12,7 @@ export NVM_DIR="$HOME/.nvm"
 export KUBECTL_EXTERNAL_DIFF="kdiff"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
+
 COMPLETION_WAITING_DOTS="false"
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
