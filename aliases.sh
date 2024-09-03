@@ -222,6 +222,7 @@ fdf() {
 }
 alias pj='fdf ~/github'
 ### General aliases ###
+alias cat='bat'
 alias watch='watch --color '
 alias vim="nvim"
 alias v='nvim'
