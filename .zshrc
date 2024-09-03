@@ -126,7 +126,7 @@ alias ls="eza --icons=always"
 
 # ---- TheFuck -----
 
-# thefuck alias
+thefuck alias
 eval $(thefuck --alias)
 eval $(thefuck --alias fk)
 
