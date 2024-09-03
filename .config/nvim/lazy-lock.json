@@ -83,6 +83,7 @@
   "statuscol.nvim": { "branch": "0.10", "commit": "b0de00dfcf583bdd94284d844aac1b134d47c578" },
   "switch.vim": { "branch": "main", "commit": "21defb202ebb8406b8ed63183a43ea026f2645b3" },
   "template-string.nvim": { "branch": "main", "commit": "419bfb2e4d5f0e6ddd0d4435f85b69da0d88d524" },
+  "tokyonight.nvim": { "branch": "main", "commit": "4b386e66a9599057587c30538d5e6192e3d1c181" },
   "treemonkey.nvim": { "branch": "main", "commit": "1fe117cc25b283c33209136e8d48cea078939d6d" },
   "treesitter-terraform-doc.nvim": { "branch": "main", "commit": "b51acfe94080c6412e4c379b876606173399657e" },
   "trouble.nvim": { "branch": "main", "commit": "6efc446226679fda0547c0fd6a7892fd5f5b15d8" },
