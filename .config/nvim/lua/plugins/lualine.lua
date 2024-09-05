@@ -9,7 +9,7 @@ M.config = function()
   -- Color table for highlights
   -- stylua: ignore
   local colors = {
-    bg       = '#202328',
+    bg       = '#011423',
     fg       = '#bbc2cf',
     aqua     = '#6EB0A3',
     yellow   = '#ECBE7B',
