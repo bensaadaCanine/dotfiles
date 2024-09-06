@@ -11,11 +11,11 @@ M.config = function()
   local colors = {
     bg       = '#011423',
     fg       = '#bbc2cf',
-    aqua     = '#6EB0A3',
+    aqua     = '#02d1fa',
     yellow   = '#ECBE7B',
     cyan     = '#008080',
     darkblue = '#081633',
-    green    = '#a9b665',
+    green    = '#33d650',
     orange   = '#FF8800',
     violet   = '#a9a1e1',
     magenta  = '#c678dd',
@@ -40,7 +40,7 @@ M.config = function()
     end,
   }
 
-  local my_branch = { 'branch', icon = '', color = { fg = colors.violet, gui = 'bold' } }
+  local my_branch = { 'branch', icon = '', color = { fg = colors.green, gui = 'bold' } }
 
   local borders = {
     left = {
@@ -240,7 +240,7 @@ M.config = function()
       end
       return table.concat(all_client_names, ', ')
     end,
-    icon = { ' LSP:', color = { fg = colors.green } },
+    icon = { ' LSP:', color = { fg = colors.violet } },
     color = { fg = '#ffffff' },
   }
   ins_right {
