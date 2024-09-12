@@ -231,7 +231,6 @@ alias sudoedit="nvim"
 alias sed=gsed
 alias grep=ggrep
 alias sort=gsort
-alias dotfiles='cd ~/github/dotfiles'
 alias dc='cd '
 # global aliases
 alias -g Wt='while :;do '
@@ -251,8 +250,8 @@ alias -g RC='--sort-by=".status.containerStatuses[0].restartCount" -A | grep -v 
 alias gb='git for-each-ref --sort=-committerdate --format="%(refname:short)" | grep -n . | sed "s?origin/??g" | sort -t: -k2 -u | sort -n | cut -d: -f2 | fzf | xargs git checkout'
 alias gp="git push --set-upstream origin HEAD"
 alias gml="git checkout \$(git symbolic-ref refs/remotes/origin/HEAD | tr \"/\" \" \" | awk '{print \$4}') && git pull"
+alias groot="cd \$(git rev-parse --show-toplevel)"
 alias repos="cd ~/github"
-alias services="repos && cd services"
 ### Shortcuts to directories ###
 alias difff='code --diff'
 ### Kubernetes Aliases ###
