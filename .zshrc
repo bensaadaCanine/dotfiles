@@ -125,12 +125,6 @@ export BAT_THEME=tokyonight_night
 
 alias ls="eza --icons=always"
 
-# ---- TheFuck -----
-
-thefuck alias
-eval $(thefuck --alias)
-eval $(thefuck --alias fk)
-
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
 
