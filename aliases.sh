@@ -298,7 +298,7 @@ alias zoom='open -a "zoom.us"'
 alias ssv="/usr/local/bin/ssv.sh awsjump"
 alias ssvd="/usr/local/bin/ssv.sh devjump"
 alias watch='watch '
-alias tgrmtrace="rm -rf aws-provider.tf backend.tf terragrunt_variables.tf versions.tf azure-provider.tf .azure"
+alias tgrmtrace="rm -rf aws-provider.tf backend.tf terragrunt_variables.tf versions.tf azure-provider.tf providers-tg-generated.tf .azure .terraform"
 alias tf='terraform'
 alias tg='terragrunt'
 alias awsdev='export AWS_PROFILE=dev'
