@@ -75,7 +75,9 @@ function gparamsp() {
 }
 
 function dparamsp() {
-  aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r
+  aws_param_temp=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r | fzf)
+  gparamsp $aws_param_temp
+  aws_param_temp=
 }
 
 function aws_p() {
