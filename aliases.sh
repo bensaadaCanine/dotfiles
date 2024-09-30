@@ -76,8 +76,10 @@ function gparamsp() {
 
 function dparamsp() {
   aws_param_temp=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r | fzf)
-  gparamsp $aws_param_temp
-  aws_param_temp=
+  if [ $aws_param_temp ]; then
+    gparamsp $aws_param_temp
+    aws_param_temp=
+  fi
 }
 
 function aws_p() {
