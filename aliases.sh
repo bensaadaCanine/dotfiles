@@ -77,7 +77,7 @@ function gparamsp() {
 function dparamsp() {
   aws_param_temp=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r | fzf)
   if [ $aws_param_temp ]; then
-    gparamsp $aws_param_temp
+    aws ssm get-parameter --name $aws_param_temp --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
     aws_param_temp=
   fi
 }
