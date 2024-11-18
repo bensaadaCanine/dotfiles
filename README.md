@@ -30,7 +30,15 @@ In your terminal:
 git clone git@github.com:bensaadaCanine/dotfiles.git ~/.dotfiles
 ```
 
-## 3. HomeBrew
+## 3. Effuse
+
+```
+sudo gem install effuse
+cd ~/.dotfiles
+effuse
+```
+
+## 4. HomeBrew
 
 In your terminal:
 
@@ -41,13 +49,7 @@ source ~/.zprofile
 brew bundle --file ~/.dotfiles/Brewfile
 ```
 
-## 4. Another Installments
-
-Effuse:
-
-```
-sudo gem install effuse
-```
+## 5. Another Installments
 
 oh-my-zsh:
 
@@ -56,7 +58,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 ```
 
-## 5. Install tpm (temux plugin manager)
+tmux:
 
 ```
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
