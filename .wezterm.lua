@@ -1,5 +1,6 @@
 -- Pull in the wezterm API
 local wezterm = require 'wezterm'
+local act = wezterm.action
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -33,12 +34,55 @@ config.colors = {
 
 -- keys config
 config.keys = {
-  {
-    key = 'f',
-    mods = 'CTRL|CMD',
-    action = wezterm.action.ToggleFullScreen,
-  },
+  -- Toggle full screen
+  { key = 'f', mods = 'CTRL|CMD', action = act.ToggleFullScreen },
+  -- split pane
+  { key = 'd', mods = 'CMD', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+  { key = 'd', mods = 'SHIFT|CMD', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+  -- command palette
+  { key = 'P', mods = 'CTRL|SHIFT', action = act.ActivateCommandPalette },
+  -- activate copy mode
+  { key = 'C', mods = 'CMD|SHIFT', action = act.ActivateCopyMode },
+  -- kill pane
+  { key = 'w', mods = 'CMD', action = act.CloseCurrentPane { confirm = true } },
+  -- Clear screen
+  { key = 'k', mods = 'CMD', action = act.ClearScrollback 'ScrollbackAndViewport' },
 }
+
+-- arrow keys keybindings
+for _, direction in ipairs { 'Left', 'Right', 'Up', 'Down' } do
+  -- move between panes
+  table.insert(config.keys, { key = direction .. 'Arrow', mods = 'CMD|OPT', action = act.ActivatePaneDirection(direction) })
+
+  -- resize panes
+  table.insert(config.keys, { key = direction .. 'Arrow', mods = 'CTRL|CMD', action = act.AdjustPaneSize { direction, 3 } })
+
+  if direction == 'Left' or direction == 'Right' then
+    -- Sends ESC + b and ESC + f sequence, which is used
+    -- for telling your shell to jump back/forward.
+    local letter = direction == 'Left' and 'b' or 'f'
+    table.insert(config.keys, {
+      key = direction .. 'Arrow',
+      mods = 'OPT',
+      action = act.SendKey { key = letter, mods = 'OPT' },
+    })
+
+    -- Move to the left/right tab
+    local relative = direction == 'Left' and -1 or 1
+    table.insert(config.keys, { key = direction .. 'Arrow', mods = 'CMD', action = act.ActivateTabRelative(relative) })
+
+    -- rotate panes
+    local rotate = direction == 'Left' and 'CounterClockwise' or 'Clockwise'
+    table.insert(config.keys, { key = direction .. 'Arrow', mods = 'CTRL|SHIFT', action = act.RotatePanes(rotate) })
+
+    -- move tab to the left/right with cmd+shift+left/right
+    table.insert(config.keys, { key = direction .. 'Arrow', mods = 'CMD|SHIFT', action = act.MoveTabRelative(relative) })
+  end
+end
+
+for i = 1, 9 do
+  table.insert(config.keys, { key = tostring(i), mods = 'CMD', action = act.ActivateTab(i - 1) })
+end
 
 -- and finally, return the configuration to wezterm
 return config
