@@ -37,14 +37,8 @@ In your terminal:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 export PATH="/opt/homebrew/bin:${PATH}"
-brew bundle --file ~/.dotfiles/Brewfile
-```
-
-If in Apple Silicon Mackbook, run the following:
-
-```
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 source ~/.zprofile
+brew bundle --file ~/.dotfiles/Brewfile
 ```
 
 ## 4. Another Installments
