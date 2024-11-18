@@ -47,7 +47,7 @@ echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 source ~/.zprofile
 ```
 
-## 4. Another Installments (!!In Wezterm/Iterm2!!)
+## 4. Another Installments
 
 Effuse:
 
