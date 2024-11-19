@@ -18,13 +18,29 @@ config.window_decorations = 'TITLE | RESIZE'
 
 config.window_background_opacity = 0.9
 config.macos_window_background_blur = 10
+config.background = {
+  {
+    source = {
+      File = '/Users/bsaada/Documents/beitar_logo.jpg',
+    },
+    repeat_y = 'NoRepeat',
+    hsb = {
+      brightness = 0.06,
+      hue = 1.0,
+      saturation = 1.0,
+    },
+    height = 'Cover',
+    width = 'Contain',
+    opacity = 0.95,
+  },
+}
 
 -- CoolNight colorscheme:
 config.colors = {
   foreground = '#CBE0F0',
   background = '#011423',
-  cursor_bg = '#47FF9C',
-  cursor_border = '#47FF9C',
+  cursor_bg = '#fced57',
+  cursor_border = '#fced57',
   cursor_fg = '#011423',
   selection_bg = '#033259',
   selection_fg = '#CBE0F0',
