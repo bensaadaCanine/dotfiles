@@ -16,7 +16,6 @@ config.enable_tab_bar = false
 
 config.window_decorations = 'TITLE | RESIZE'
 
-config.window_background_opacity = 0.9
 config.macos_window_background_blur = 10
 config.background = {
   {
@@ -31,7 +30,7 @@ config.background = {
     },
     height = 'Cover',
     width = 'Contain',
-    opacity = 0.95,
+    opacity = 0.94,
   },
 }
 
