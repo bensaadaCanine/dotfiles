@@ -15,24 +15,7 @@ config.font_size = 16
 config.enable_tab_bar = false
 
 config.window_decorations = 'TITLE | RESIZE'
-
-config.macos_window_background_blur = 10
-config.background = {
-  {
-    source = {
-      File = '/Users/bsaada/Documents/beitar_logo.jpg',
-    },
-    repeat_y = 'NoRepeat',
-    hsb = {
-      brightness = 0.06,
-      hue = 1.0,
-      saturation = 1.0,
-    },
-    height = 'Cover',
-    width = 'Contain',
-    opacity = 0.94,
-  },
-}
+config.window_background_opacity = 0.9
 
 -- CoolNight colorscheme:
 config.colors = {
