@@ -58,22 +58,6 @@ local M = {
     'chrisbra/vim-sh-indent',
     ft = { 'sh', 'bash', 'zsh' },
   },
-
-  -----------------------------
-  -- AI and smart completion --
-  -----------------------------
-  -- {
-  --   'github/copilot.vim',
-  --   event = 'InsertEnter',
-  --   config = function()
-  --     vim.cmd [[
-  --       imap <silent><script><expr> <M-Enter> copilot#Accept("\<CR>")
-  --       " imap <silent> <c-]> <Plug>(copilot-next)
-  --       " inoremap <silent> <c-[> <Plug>(copilot-previous)
-  --       let g:copilot_no_tab_map = v:true
-  --     ]]
-  --   end,
-  -- },
   {
     'David-Kunz/gen.nvim',
     cmd = { 'Gen' },
@@ -85,35 +69,6 @@ local M = {
       require('codeium').setup {}
     end,
   },
-  {
-    'zbirenbaum/copilot.lua',
-    event = 'InsertEnter',
-    config = function()
-      vim.schedule(function()
-        require('copilot').setup {
-          filetypes = { ['*'] = true },
-          panel = {
-            enabled = true,
-            auto_refresh = false,
-            keymap = {
-              jump_prev = '[[',
-              jump_next = ']]',
-              accept = '<CR>',
-              refresh = 'gr',
-              open = '<M-l>',
-            },
-          },
-          suggestion = {
-            auto_trigger = true,
-            keymap = {
-              accept = '<M-Enter>',
-            },
-          },
-        }
-      end)
-    end,
-  },
-
   --------------
   -- Quickfix --
   --------------
