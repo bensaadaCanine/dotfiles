@@ -127,11 +127,17 @@ local M = {
   },
   {
     'max397574/better-escape.nvim',
-    opts = {
-      mapping = { 'jk' },
-    },
-    event = 'InsertEnter',
+    config = function()
+      require('better_escape').setup()
+    end,
   },
+  -- {
+  --   'max397574/better-escape.nvim',
+  --   opts = {
+  --     mapping = { 'jk' },
+  --   },
+  --   event = 'InsertEnter',
+  -- },
   {
     'AndrewRadev/linediff.vim',
     cmd = { 'Linediff' },
