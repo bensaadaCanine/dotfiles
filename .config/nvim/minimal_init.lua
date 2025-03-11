@@ -108,10 +108,10 @@ _G.load_config = function()
       that requires it please edit minimal_init.lua]]
   end
 
-  nvim_lsp[name].setup {
-    cmd = { '/Users/mavni/.local/share/nvim/mason/bin/terraform-ls', 'serve' },
-    on_attach = on_attach,
-    capabilities = capabilities,
+  -- nvim_lsp[name].setup {
+  --   cmd = { '/Users/mavni/.local/share/nvim/mason/bin/terraform-ls', 'serve' },
+  --   on_attach = on_attach,
+  --   capabilities = capabilities,
     -- on_init = function()
     --   require('user.select-schema').get_client()
     -- end,
@@ -146,10 +146,10 @@ _G.load_config = function()
     --     },
     --   },
     -- },
-  }
-
-  print [[You can find your log at $HOME/.cache/nvim/lsp.log. Please paste in a github issue under a details tag as described in the issue template.]]
-end
+--   }
+--
+--   print [[You can find your log at $HOME/.cache/nvim/lsp.log. Please paste in a github issue under a details tag as described in the issue template.]]
+-- end
 
 require('lazy').setup({
   'habamax/vim-habamax',
