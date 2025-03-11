@@ -130,14 +130,11 @@ local M = {
     config = function()
       require('better_escape').setup()
     end,
+    opts = {
+      mapping = { 'jk' },
+    },
+    event = 'InsertEnter',
   },
-  -- {
-  --   'max397574/better-escape.nvim',
-  --   opts = {
-  --     mapping = { 'jk' },
-  --   },
-  --   event = 'InsertEnter',
-  -- },
   {
     'AndrewRadev/linediff.vim',
     cmd = { 'Linediff' },
