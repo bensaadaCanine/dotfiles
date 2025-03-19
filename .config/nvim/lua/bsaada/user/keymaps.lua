@@ -49,6 +49,9 @@ map('n', 'gx', require('bsaada.user.open-url').open_url_under_cursor, { remap = 
 -- Search for string within the visual selection
 map('x', '/', '<Esc>/\\%V', { remap = false })
 
+-- open github in browser
+map({ 'v', 'n' }, '<leader>gh', require('bsaada.user.gitbrowse').open, { remap = false, desc = 'Open github in browser' })
+
 -- surround with string interpolation with motion
 function _G.__surround_with_interpolation(motion)
   if motion == nil or motion == 'line' then
@@ -112,6 +115,9 @@ map('n', '<C-h>', '<C-w>h', { remap = true, desc = 'Go to Left Window' })
 map('n', '<C-j>', '<C-w>j', { remap = true, desc = 'Go to Lower Window' })
 map('n', '<C-k>', '<C-w>k', { remap = true, desc = 'Go to Upper Window' })
 map('n', '<C-l>', '<C-w>l', { remap = true, desc = 'Go to Right Window' })
+
+-- Resize window using <ctrl> arrow keys
+require('bsaada.user.winresizer').setup()
 
 -- entire file text-object
 map('o', 'ae', '<cmd>normal! ggVG<CR>', { remap = false })
@@ -389,6 +395,11 @@ require('bsaada.user.grep').setup()
 -- DiffTool --
 --------------
 require('bsaada.user.difftool').setup()
+
+------------------------
+-- Run current buffer --
+------------------------
+require 'bsaada.user.run-buffer'
 
 --------------------
 -- Clear Terminal --
