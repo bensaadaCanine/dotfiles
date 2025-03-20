@@ -1,25 +1,25 @@
 local M = {
-  "folke/tokyonight.nvim",
+  'folke/tokyonight.nvim',
   priority = 1000,
   config = function()
     local transparent = true
 
-    local bg = "#011628"
-    local bg_dark = "#011423"
-    local bg_highlight = "#143652"
-    local bg_search = "#0A64AC"
-    local bg_visual = "#275378"
-    local fg = "#CBE0F0"
-    local fg_dark = "#B4D0E9"
-    local fg_gutter = "#627E97"
-    local border = "#547998"
+    local bg = '#011628'
+    local bg_dark = '#011423'
+    local bg_highlight = '#143652'
+    local bg_search = '#0A64AC'
+    local bg_visual = '#275378'
+    local fg = '#CBE0F0'
+    local fg_dark = '#B4D0E9'
+    local fg_gutter = '#627E97'
+    local border = '#547998'
 
-    require("tokyonight").setup({
-      style = "night",
+    require('tokyonight').setup {
+      style = 'night',
       transparent = transparent,
       styles = {
-        sidebars = transparent and "transparent" or "dark",
-        floats = transparent and "transparent" or "dark",
+        sidebars = transparent and 'transparent' or 'dark',
+        floats = transparent and 'transparent' or 'dark',
       },
       on_colors = function(colors)
         colors.bg = bg
@@ -38,9 +38,16 @@ local M = {
         colors.fg_gutter = fg_gutter
         colors.fg_sidebar = fg_dark
       end,
-    })
+      on_highlights = function(highlights, colors)
+        highlights.AlphaHeader = { fg = '#caff78' }
+        highlights.AlphaInfo = { fg = '#53d5f8' }
+        highlights.AlphaButtonShortcut = { fg = '#2598ff' }
+        highlights.AlphaButton = { fg = '#43a0ee' }
+        highlights.AlphaQuote = { fg = '#FFE5B4', italic = true }
+      end,
+    }
 
-    vim.cmd("colorscheme tokyonight")
+    vim.cmd 'colorscheme tokyonight'
   end,
 }
 
