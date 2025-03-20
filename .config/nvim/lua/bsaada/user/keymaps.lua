@@ -22,6 +22,10 @@ map('v', 'H', '0', { remap = false })
 map('v', '<tab>', '>gv')
 map('v', '<s-tab>', '<gv')
 
+-- move text blocks around
+map('v', 'J', ":m '>+1<CR>gv=gv")
+map('v', 'K', ":m '<-2<CR>gv=gv")
+
 -- command line mappings
 map('c', '<c-h>', '<left>')
 map('c', '<c-j>', '<down>')
