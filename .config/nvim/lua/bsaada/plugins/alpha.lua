@@ -89,6 +89,13 @@ local function layout()
     for _, filename in ipairs(vim.v.oldfiles) do
       if vim.loop.fs_stat(filename) ~= nil then
         local icon, hl = require('nvim-web-devicons').get_icon(filename, vim.fn.fnamemodify(filename, ':e'))
+
+        --Jenkinsfiles are missing in nerdfonts
+        if vim.fn.fnamemodify(filename, ':e') == 'Jenkinsfile' then
+          icon = ''
+          hl = 'AlphaJenkinsfile'
+        end
+
         local filename_short = string.sub(vim.fn.fnamemodify(filename, ':t'), 1, 30)
         table.insert(
           result,
@@ -97,7 +104,7 @@ local function layout()
             string.format('%s  %s', icon, filename_short),
             string.format('<Cmd>e %s<CR>', filename),
             nil,
-            { hl = { { hl, 0, 3 }, { 'Normal', 5, #filename_short + 5 } } }
+            { hl = { { hl or 'AlphaButton', 0, 3 }, { 'Normal', 5, #filename_short + 5 } } }
           )
         )
         if #result == 9 then

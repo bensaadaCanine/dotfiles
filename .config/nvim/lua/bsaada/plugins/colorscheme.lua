@@ -45,6 +45,7 @@ local M = {
         highlights.AlphaButtonShortcut = { fg = '#2598ff' }
         highlights.AlphaButton = { fg = '#43a0ee' }
         highlights.AlphaQuote = { fg = '#FFE5B4', italic = true }
+        highlights.AlphaJenkinsfile = { fg = '#f0d6b7' }
       end,
     }
 
