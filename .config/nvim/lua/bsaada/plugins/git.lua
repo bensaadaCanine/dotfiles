@@ -104,6 +104,7 @@ local fugitive_config = function()
   vim.keymap.set('n', '<leader>gl', '<cmd>Gl<cr>')
   vim.api.nvim_create_user_command('Gf', git_funcs.fetch_all, {})
   vim.keymap.set('n', '<leader>gf', '<cmd>Gf<cr>')
+  vim.keymap.set('n', '<leader>gpr', '<cmd>Cpr<cr>')
 
   ---------------------
   -- Toggle fugitive --

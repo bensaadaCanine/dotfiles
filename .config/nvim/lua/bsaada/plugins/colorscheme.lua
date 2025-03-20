@@ -38,7 +38,8 @@ local M = {
         colors.fg_gutter = fg_gutter
         colors.fg_sidebar = fg_dark
       end,
-      on_highlights = function(highlights, colors)
+      -- For alpha greeter
+      on_highlights = function(highlights)
         highlights.AlphaHeader = { fg = '#caff78' }
         highlights.AlphaInfo = { fg = '#53d5f8' }
         highlights.AlphaButtonShortcut = { fg = '#2598ff' }
