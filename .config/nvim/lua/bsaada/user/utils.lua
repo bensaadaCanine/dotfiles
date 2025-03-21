@@ -239,7 +239,7 @@ M.random_emoji = function()
   local random_num = math.random(90)
   return emojis[random_num]
 end
-
+--comment
 M.tbl_get_next = function(tbl, cur)
   local idx = 1
   for i, v in ipairs(tbl) do
