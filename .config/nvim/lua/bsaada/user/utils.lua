@@ -238,7 +238,6 @@ M.random_emoji = function()
   math.randomseed(os.time())
   return emojis[math.random(90)]
 end
---vo
 
 M.tbl_get_next = function(tbl, cur)
   local idx = 1
