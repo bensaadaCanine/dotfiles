@@ -152,6 +152,14 @@ M.country_os_to_emoji = function(iso)
   return emoji
 end
 
+M.random_emoji = function()
+  local emojis =
+    '🔥😂😊😁🙏😎💪😋😇🎉🙌🤘👍🤑🤩🤪🤠🥳😌🤤😍😀🥸🤓🥳👻😈👹💩☠️💀👽🤖🎃🥶🥵🫡🤡👾🐶🐱🐭🐹🐰🦊🐻🐼🌖🌚🌝🌞⚡️☄️🌟💫🌙💥🍆🍌🍔🍪🍻⚽️🎲🎗🎤🎼🏆🏟🕍💻💿🧲🪬🧿✡️☣️☢️♨️💯'
+  local random_num = math.random(89)
+  local result = string.sub(emojis, random_num - 1, random_num)
+  return result
+end
+
 M.tbl_get_next = function(tbl, cur)
   local idx = 1
   for i, v in ipairs(tbl) do
