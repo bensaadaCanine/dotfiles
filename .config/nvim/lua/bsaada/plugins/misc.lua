@@ -10,6 +10,13 @@ local M = {
           name = 'HCL',
         },
       },
+      override_by_filename = {
+        ['.Jenkinsfile'] = {
+          icon = '',
+          color = '#f0d6b7',
+          name = 'Jenkinsfile',
+        },
+      },
     },
   },
   {
