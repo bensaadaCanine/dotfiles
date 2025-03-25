@@ -1,3 +1,4 @@
+#!/bin/bash
 ### Helper functions ###
 function _alias_parser() {
   parsed_alias=$(alias -- "$1")
@@ -278,6 +279,7 @@ alias kg='kubectl get '
 alias kd='kubectl describe '
 alias ke='kubectl edit '
 alias kdel='kubectl delete '
+alias ktestpod='kubectl run netshoot --image=nicolaka/netshoot --rm -it -- /bin/bash'
 # Kubectl Persistent Volume
 alias kgpv='kubectl get persistentvolume'
 alias kdpv='kubectl describe persistentvolume'
@@ -309,5 +311,4 @@ alias tg='terragrunt'
 alias awsdev='export AWS_PROFILE=dev'
 alias awsdyndev='export AWS_PROFILE=dynamic-dev'
 alias awsprod='export AWS_PROFILE=default'
-
 alias update-nvim-nightly='asdf uninstall neovim nightly && asdf install neovim nightly'
