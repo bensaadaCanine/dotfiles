@@ -236,7 +236,7 @@ M.random_emoji = function()
     '💯',
   }
   math.randomseed(os.time())
-  return emojis[math.random(90)]
+  return emojis[math.random(89)]
 end
 
 M.tbl_get_next = function(tbl, cur)
