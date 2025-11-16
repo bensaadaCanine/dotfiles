@@ -142,9 +142,9 @@ function kgpimg() {
 }
 function kubedebug() {
   # image=gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
-  local image=mosheavni/net-debug:latest
+  local image=nicolaka/net-debug:latest
   local docker_exe=bash
-  local pod_name=debug
+  local pod_name=network-debug
   local kubectl_args=()
   local processing_k_args=false
   while test $# -gt 0; do

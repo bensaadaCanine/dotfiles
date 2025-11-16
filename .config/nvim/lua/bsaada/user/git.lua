@@ -146,12 +146,45 @@ end
 M.create_pull_request = function()
   M.get_remotes(function(git_remotes)
     local git_remote_url = git_remotes['origin']
-    local prefix = git_remote_url:match '^%w+' == 'git' and 'git@' or 'https://'
-    local git_name, project, repo = git_remote_url:match(('^' .. prefix .. '(%w+).com[:/](.+)/(.+)%.git'))
+    if not git_remote_url then
+      M.prnt("Could not find remote 'origin'", true)
+      return
+    end
+
+    local host, project, repo
+    if git_remote_url:match '^git@' then
+      host, project, repo = git_remote_url:match('^git@([^:]+):(.+)/(.+)%.git')
+    else -- assuming https
+      host, project, repo = git_remote_url:match('^https://([^/]+)/(.+)/(.+)%.git')
+    end
+
+    if not host then
+      Mprnt(('Could not parse git remote URL: %s'):format(git_remote_url), true)
+      return
+    end
+
+    -- Extract git_name from host (e.g., 'github' from 'github.com-emu' or 'gitlab' from 'gitlab.com')
+    local git_name = host:match("^(%w+)")
+
+    if not git_name then
+      M.prnt(('Could not determine git provider from host: %s'):format(host), true)
+      return
+    end
+
     local pr_link = git_name == 'gitlab' and '-/merge_requests/new?merge_request[source_branch]=' or 'pull/new/'
 
+    -- Determine the web URL for the git host
+    local web_host = host
+    if host == 'github.com-emu' then
+      web_host = 'github.com'
+    end
+
     M.get_branch(function(branch_name)
-      local url = ('https://%s.com/%s/%s/%s%s'):format(git_name, project, repo, pr_link, branch_name)
+      if not branch_name or branch_name == '' then
+        M.prnt('Could not get current branch', true)
+        return
+      end
+      local url = ('https://%s/%s/%s/%s%s'):format(web_host, project, repo, pr_link, branch_name)
       vim.ui.open(url)
     end)
   end)
