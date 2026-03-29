@@ -20,34 +20,55 @@ local M = {
   },
 }
 
-M.setup = function()
+function M.setup()
   require('bsaada.user.lsp.actions').setup()
   require('vim.lsp.log').set_format_func(vim.inspect)
-  M.capabilities =
-    vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), require('cmp_nvim_lsp').default_capabilities(), M.capabilities or {}, {})
 
-  -- Diagnostics
+  M.capabilities =
+    vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), require('cmp_nvim_lsp').default_capabilities(), M.capabilities or {})
+
   vim.diagnostic.config {
-    jump = { float = true },
-    signs = { text = M.diagnostic_signs },
-    virtual_text = { severity = { min = vim.diagnostic.severity.WARN } },
-    float = { border = 'rounded', source = 'if_many' },
+    jump = {
+      float = true,
+    },
+    signs = {
+      text = M.diagnostic_signs,
+    },
+    virtual_text = {
+      severity = {
+        min = vim.diagnostic.severity.WARN,
+      },
+    },
+    float = {
+      border = 'rounded',
+      source = 'if_many',
+    },
+    severity_sort = true,
+    underline = true,
+    update_in_insert = false,
   }
 
-  ---@diagnostic disable-next-line: missing-fields
-  require('mason-lspconfig').setup { automatic_installation = true }
+  require('mason-lspconfig').setup {
+    automatic_installation = true,
+  }
+
   require('bsaada.user.lsp.servers').setup()
 
-  -- on attach
-  local on_attach_aug = vim.api.nvim_create_augroup('UserLspAttach', { clear = true })
+  local augroup = vim.api.nvim_create_augroup('UserLspAttach', { clear = true })
+
   vim.api.nvim_create_autocmd('LspAttach', {
-    group = on_attach_aug,
+    group = augroup,
     callback = function(ev)
       local client = vim.lsp.get_client_by_id(ev.data.client_id)
       local bufnr = ev.buf
+
       require 'bsaada.user.lsp.keymaps'(bufnr)
+
       if client and client.server_capabilities.documentSymbolProvider then
-        require('nvim-navic').attach(client, bufnr)
+        local ok, navic = pcall(require, 'nvim-navic')
+        if ok then
+          navic.attach(client, bufnr)
+        end
       end
     end,
   })

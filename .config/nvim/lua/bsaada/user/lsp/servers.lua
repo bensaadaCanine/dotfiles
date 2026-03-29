@@ -1,46 +1,65 @@
 local M = {}
-M.setup = function()
-  local capabilities = require('bsaada.user.lsp.config').capabilities
-  local lspconfig = require 'lspconfig'
 
-  lspconfig['bashls'].setup { capabilities = capabilities }
-  lspconfig['cssls'].setup { capabilities = capabilities }
-  lspconfig['cssmodules_ls'].setup { capabilities = capabilities }
-  lspconfig['dockerls'].setup { capabilities = capabilities }
-  lspconfig['vtsls'].setup { capabilities = capabilities }
-  lspconfig['docker_compose_language_service'].setup { capabilities = capabilities }
-  lspconfig['groovyls'].setup { capabilities = capabilities }
-  lspconfig['html'].setup { capabilities = capabilities }
-  lspconfig['vimls'].setup { capabilities = capabilities }
-  lspconfig['taplo'].setup { capabilities = capabilities }
-  lspconfig['jsonls'].setup {
-    capabilities = capabilities,
+function M.setup()
+  local capabilities = require('bsaada.user.lsp.config').capabilities
+
+  local function with_capabilities(opts)
+    opts = opts or {}
+    opts.capabilities = vim.tbl_deep_extend('force', {}, capabilities, opts.capabilities or {})
+    return opts
+  end
+
+  local function setup(server, opts)
+    vim.lsp.config(server, with_capabilities(opts))
+    vim.lsp.enable(server)
+  end
+
+  setup 'bashls'
+  setup 'cssls'
+  setup 'cssmodules_ls'
+  setup 'dockerls'
+  setup 'docker_compose_language_service'
+  setup 'vtsls'
+  setup 'groovyls'
+  setup 'html'
+  setup 'vimls'
+  setup 'taplo'
+
+  setup('jsonls', {
     settings = {
       json = {
-        trace = {
-          server = 'on',
-        },
-        schemas = require('schemastore').json.schemas(),
+        trace = { server = 'off' },
         validate = { enable = true },
+        schemas = require('schemastore').json.schemas(),
       },
     },
-  }
+  })
 
-  lspconfig['pyright'].setup {
-    capabilities = capabilities,
+  setup('pyright', {
     settings = {
-      organizeimports = {
-        provider = 'isort',
+      pyright = {
+        disableOrganizeImports = false,
+      },
+      python = {
+        analysis = {
+          autoSearchPaths = true,
+          diagnosticMode = 'workspace',
+          useLibraryCodeForTypes = true,
+        },
       },
     },
-  }
+  })
 
-  lspconfig['lua_ls'].setup {
-    capabilities = capabilities,
+  setup('lua_ls', {
+    workspace_required = true,
+    root_markers = {
+      { '.luarc.json', '.luarc.jsonc' },
+      { 'stylua.toml', '.stylua.toml' },
+      '.git',
+    },
     settings = {
       Lua = {
         runtime = {
-          -- Tell the language server which version of Lua you're using (most likely LuaJIT)
           version = 'LuaJIT',
         },
         completion = {
@@ -53,36 +72,44 @@ M.setup = function()
           disable = { 'undefined-global' },
           globals = { 'vim' },
         },
-        -- workspace = {
-        --   -- Make the server aware of Neovim runtime files
-        --   library = {},
-        --   checkThirdParty = false,
-        -- },
-        -- telemetry = { enable = false },
+        workspace = {
+          checkThirdParty = false,
+        },
+        telemetry = {
+          enable = false,
+        },
       },
     },
-  }
+  })
 
-  lspconfig['terraformls'].setup {
-    on_attach = function(c)
-      require('treesitter-terraform-doc').setup {}
-      c.server_capabilities.semanticTokensProvider = {}
-      vim.o.commentstring = '# %s'
+  setup('terraformls', {
+    on_attach = function(client, bufnr)
+      pcall(function()
+        require('treesitter-terraform-doc').setup {}
+      end)
+
+      client.server_capabilities.semanticTokensProvider = nil
+      vim.bo[bufnr].commentstring = '# %s'
     end,
+  })
+
+  local yaml_cfg = require('bsaada.user.lsp.yaml').setup {
     capabilities = capabilities,
   }
 
-  local yaml_cfg = require('bsaada.user.lsp.yaml').setup { capabilities = capabilities }
+  setup('yamlls', yaml_cfg)
 
-  lspconfig['helm_ls'].setup {
-    capabilities = capabilities,
+  setup('helm_ls', {
     filetypes = { 'helm', 'gotmpl' },
     settings = {
-      yamlls = {
-        config = yaml_cfg.settings,
+      ['helm-ls'] = {
+        yamlls = {
+          path = 'yaml-language-server',
+          config = yaml_cfg.settings,
+        },
       },
     },
-  }
+  })
 end
 
 return M
