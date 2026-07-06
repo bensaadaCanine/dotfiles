@@ -92,36 +92,7 @@ function aws_ecr_login() {
 }
 
 ### Azure functions ###
-# Access to the right context of Azure
-function azureprod() {
-  az account set --name 'Spot Production'
-  az config set defaults.group=spotinst-production --local
-}
 
-function azuredev() {
-  az account set --name 'Spot Dev'
-  az config set defaults.group=spotinst-dev --local
-}
-
-function azuredevsc() {
-  az account set --name 'azure-dev-single-cloud'
-  az config set defaults.group=spot-sc-az-dev-rg --local
-}
-
-function azuremgmt() {
-  az account set --name 'azure-mgmt-single-cloud'
-}
-
-function az_bastion_mgmt() {
-  bastion_name=bs-mgmt-eus-01
-  bastion_resource_group=rg-netw-mgmt-01
-  target_vm_resource_id=/subscriptions/de935d00-563f-457c-9561-4e5a7051df5b/resourceGroups/rg-netw-mgmt-01/providers/Microsoft.Compute/virtualMachines/bastion-vm
-  az network bastion ssh \
-    --name "$bastion_name" \
-    --resource-group "$bastion_resource_group" \
-    --target-resource-id "$target_vm_resource_id" \
-    --auth-type AAD
-}
 
 ### Kubernetes functions ###
 function kdpw() {
@@ -302,13 +273,8 @@ alias outlook='open -a "Microsoft Outlook"'
 alias slack='open -a "Slack"'
 alias sublime='open -a "Sublime Text"'
 alias zoom='open -a "zoom.us"'
-alias ssv="/usr/local/bin/ssv.sh awsjump"
-alias ssvd="/usr/local/bin/ssv.sh devjump"
 alias watch='watch '
 alias tgrmtrace="rm -rf aws-provider.tf backend.tf terragrunt_variables.tf versions.tf azure-provider.tf providers-tg-generated.tf .azure .terraform"
 alias tf='terraform'
 alias tg='terragrunt'
-alias awsdev='export AWS_PROFILE=dev'
-alias awsdyndev='export AWS_PROFILE=dynamic-dev'
-alias awsprod='export AWS_PROFILE=default'
 alias update-nvim-nightly='asdf uninstall neovim nightly && asdf install neovim nightly'
