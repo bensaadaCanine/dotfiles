@@ -93,7 +93,6 @@ function aws_ecr_login() {
 
 ### Azure functions ###
 
-
 ### Kubernetes functions ###
 function kdpw() {
   watch "kubectl describe po $* | tail -20"
@@ -228,7 +227,7 @@ alias gb='git for-each-ref --sort=-committerdate --format="%(refname:short)" | g
 alias gp="git push --set-upstream origin HEAD"
 alias gml="git checkout \$(git symbolic-ref refs/remotes/origin/HEAD | tr \"/\" \" \" | awk '{print \$4}') && git pull"
 alias groot="cd \$(git rev-parse --show-toplevel)"
-alias repos="cd ~/github"
+alias repos="cd ~/repos"
 ### Shortcuts to directories ###
 alias difff='code --diff'
 ### Kubernetes Aliases ###
