@@ -195,7 +195,7 @@ fdf() {
   dir_to_enter=$(sed "s?$dir_clean/??g" <<<$all_files | fzf)
   cd "$dir_clean/$dir_to_enter" && nvim
 }
-alias pj='fdf ~/github'
+alias pj='fdf ~/repos'
 ### General aliases ###
 alias lla='ls -la'
 alias cat='bat'
