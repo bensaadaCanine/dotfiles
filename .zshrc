@@ -8,6 +8,7 @@ fi
 export ZSH="${HOME}/.oh-my-zsh"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 export PATH="/opt/homebrew/bin:${HOME}/.bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 export KUBECTL_EXTERNAL_DIFF="kdiff"
 ZSH_THEME="powerlevel10k/powerlevel10k"
