@@ -2,3 +2,5 @@
 tags
 .luarc.json
 pyrightconfig.json
+
+**/.claude/settings.local.json
