@@ -14,9 +14,11 @@ config.font_size = 16
 
 config.enable_tab_bar = false
 
-config.window_decorations = 'TITLE'
+config.use_resize_increments = false
+config.window_decorations = 'RESIZE'
+config.window_padding = { left = 4, right = 4, top = 4, bottom = 4 }
 
-config.window_background_opacity = 0.8
+config.window_background_opacity = 0.95
 config.macos_window_background_blur = 10
 
 -- CoolNight colorscheme:
@@ -47,6 +49,9 @@ config.keys = {
   { key = 'w', mods = 'CMD', action = act.CloseCurrentPane { confirm = true } },
   -- Clear screen
   { key = 'k', mods = 'CMD', action = act.ClearScrollback 'ScrollbackAndViewport' },
+
+  { key = 'LeftArrow', mods = 'CMD|ALT', action = wezterm.action.DisableDefaultAssignment },
+  { key = 'RightArrow', mods = 'CMD|ALT', action = wezterm.action.DisableDefaultAssignment },
 }
 
 -- arrow keys keybindings

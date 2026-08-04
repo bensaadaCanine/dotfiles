@@ -153,9 +153,9 @@ M.create_pull_request = function()
 
     local host, project, repo
     if git_remote_url:match '^git@' then
-      host, project, repo = git_remote_url:match('^git@([^:]+):(.+)/(.+)%.git')
+      host, project, repo = git_remote_url:match '^git@([^:]+):(.+)/(.+)%.git'
     else -- assuming https
-      host, project, repo = git_remote_url:match('^https://([^/]+)/(.+)/(.+)%.git')
+      host, project, repo = git_remote_url:match '^https://([^/]+)/(.+)/(.+)%.git'
     end
 
     if not host then
@@ -164,14 +164,16 @@ M.create_pull_request = function()
     end
 
     -- Extract git_name from host (e.g., 'github' from 'github.com-emu' or 'gitlab' from 'gitlab.com')
-    local git_name = host:match("^(%w+)")
+    local git_name = host:match '^(%w+)'
 
     if not git_name then
       M.prnt(('Could not determine git provider from host: %s'):format(host), true)
       return
     end
 
-    local pr_link = git_name == 'gitlab' and '-/merge_requests/new?merge_request[source_branch]=' or 'pull/new/'
+    local pr_link = git_name == 'gitlab' and '-/merge_requests/new?merge_request[source_branch]='
+      or git_name == 'bitbucket' and 'pull-requests/new?source='
+      or 'pull/new/'
 
     -- Determine the web URL for the git host
     local web_host = host
