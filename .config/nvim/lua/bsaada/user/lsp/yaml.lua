@@ -1,8 +1,13 @@
+-- Bump this periodically to match the Kubernetes version(s) you actually
+-- target — an old pinned schema will misvalidate manifests using newer
+-- (or now-removed) fields.
+local K8S_VERSION = '1.29.9'
+
 local M = {
   k8s_schemas = {
     {
-      name = 'Kubernetes 1.29.9',
-      uri = 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.9-standalone-strict/all.json',
+      name = 'Kubernetes ' .. K8S_VERSION,
+      uri = 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v' .. K8S_VERSION .. '-standalone-strict/all.json',
     },
   },
 }
@@ -13,7 +18,10 @@ function M.setup(opts)
   local capabilities = opts.capabilities or require('bsaada.user.lsp.config').capabilities
 
   local all_schemas = vim.list_extend({}, M.k8s_schemas)
-  vim.list_extend(all_schemas, require('schemastore').yaml.schemas())
+  local ok_schemastore, schemastore = pcall(require, 'schemastore')
+  if ok_schemastore then
+    vim.list_extend(all_schemas, schemastore.yaml.schemas())
+  end
 
   local config = {
     cmd = { 'yaml-language-server', '--stdio' },

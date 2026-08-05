@@ -6,7 +6,7 @@ M.open_url_under_cursor = function()
   local cword = vim.fn.expand '<cfile>'
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  local url = string.gsub(cword, [[[%w%-%.]+/[%w%-%.]+]], '%1')
+  local url = string.gsub(cword, [[([%w%-%.]+/[%w%-%.]+)]], '%1')
   -- Remove surronding quotes if exist
   url = string.gsub(url, [[^["'](.*)["']$]], '%1')
 

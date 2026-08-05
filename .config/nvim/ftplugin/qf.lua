@@ -18,7 +18,9 @@ local function remove_qf_item()
     local curqfidx = vim.fn.line '.'
     table.remove(qf_list, curqfidx)
     vim.fn.setqflist(qf_list, 'r')
-    vim.cmd(curqfidx .. 'cfirst')
+    if #qf_list > 0 then
+      vim.cmd(math.min(curqfidx, #qf_list) .. 'cfirst')
+    end
     vim.cmd 'copen'
   end
 end

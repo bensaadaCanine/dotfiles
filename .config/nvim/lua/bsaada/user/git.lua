@@ -3,14 +3,14 @@ local M = {}
 
 M.prnt = function(message, error)
   vim.schedule(function()
-    utils.pretty_print(message, 'Git Actions', '', error and vim.log.levels.ERROR, error and 7000 or 3000)
+    utils.pretty_print(message, 'Git Actions', '', error and vim.log.levels.ERROR)
   end)
 end
 
 M.get_fugitive_buffer = function()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     local bufname = vim.api.nvim_buf_get_name(buf)
-    if vim.startswith(bufname, 'fugitive://') and string.find(bufname, '.git//') then
+    if vim.startswith(bufname, 'fugitive://') and string.find(bufname, '%.git//') then
       return buf
     end
   end
@@ -159,7 +159,7 @@ M.create_pull_request = function()
     end
 
     if not host then
-      Mprnt(('Could not parse git remote URL: %s'):format(git_remote_url), true)
+      M.prnt(('Could not parse git remote URL: %s'):format(git_remote_url), true)
       return
     end
 

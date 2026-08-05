@@ -7,7 +7,10 @@ vim.schedule(function()
     silent = true,
     desc = 'Go to application',
     callback = function()
-      local _, buf_name = pcall(vim.api.nvim_buf_get_var, 0, 'buf_name')
+      local ok, buf_name = pcall(vim.api.nvim_buf_get_var, 0, 'buf_name')
+      if not ok or not buf_name then
+        return
+      end
       local lower_buf_name = string.lower(buf_name)
 
       if lower_buf_name == 'applications' or lower_buf_name == 'applications.argoproj.io' then

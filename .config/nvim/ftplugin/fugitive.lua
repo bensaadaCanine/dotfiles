@@ -1,7 +1,11 @@
 local git_funcs = require 'bsaada.user.git'
+-- Capture the buffer synchronously — ftplugin runs in the context of the
+-- buffer being loaded, so this is more reliable than scanning all buffers
+-- for a fugitive:// name match (which can grab the wrong repo's buffer
+-- when more than one fugitive buffer is open).
+local buf = vim.api.nvim_get_current_buf()
 
 vim.schedule(function()
-  local buf = git_funcs.get_fugitive_buffer() or 0
   vim.api.nvim_buf_set_keymap(buf, 'n', '<leader>t', '', {
     noremap = true,
     silent = true,

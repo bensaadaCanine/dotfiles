@@ -25,12 +25,14 @@ function M.setup()
   setup 'vimls'
   setup 'taplo'
 
+  local ok_schemastore, schemastore = pcall(require, 'schemastore')
+
   setup('jsonls', {
     settings = {
       json = {
         trace = { server = 'off' },
         validate = { enable = true },
-        schemas = require('schemastore').json.schemas(),
+        schemas = ok_schemastore and schemastore.json.schemas() or {},
       },
     },
   })

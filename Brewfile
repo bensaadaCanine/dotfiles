@@ -1,11 +1,9 @@
-tap "adoptopenjdk/openjdk", trusted: true
-tap "corgibytes/cask-fonts", trusted: true
 tap "hashicorp/tap", trusted: true
 tap "homebrew/bundle", trusted: true
 tap "johanhaleby/kubetail", trusted: true
 tap "neovim/neovim", trusted: true
 tap "weaveworks/tap", trusted: true
-tap "azure/kubelogin", trusted:true
+tap "azure/kubelogin", trusted: true
 brew "argocd"
 brew "coreutils"
 brew "asdf"

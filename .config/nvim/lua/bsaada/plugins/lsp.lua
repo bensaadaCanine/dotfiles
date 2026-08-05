@@ -65,7 +65,7 @@ local language_specific_plugins = {
     'phelipetls/jsonpath.nvim',
     ft = 'json',
     config = function()
-      vim.api.nvim_buf_create_bsaada.user.command(0, 'JsonPath', function()
+      vim.api.nvim_buf_create_user_command(0, 'JsonPath', function()
         ---@diagnostic disable-next-line: missing-parameter
         local json_path = require('jsonpath').get()
         local register = '+'

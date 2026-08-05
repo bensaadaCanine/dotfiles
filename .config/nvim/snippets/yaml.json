@@ -2,6 +2,6 @@
   "modeline": {
     "prefix": "mod",
     "body": ["# yaml-language-server: $$schema=${1:file:///}"],
-    "description": "Create an autocmd"
+    "description": "Insert yaml-language-server schema modeline"
   }
 }

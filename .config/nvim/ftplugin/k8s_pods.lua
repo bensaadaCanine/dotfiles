@@ -9,6 +9,9 @@ vim.schedule(function()
     desc = 'Kill prompt',
     callback = function()
       local name, ns = pod_view.getCurrentSelection()
+      if not name or not ns then
+        return
+      end
       local builder = ResourceBuilder:new 'kubectl_drain'
       local pod_def = {
         ft = 'k8s_kill_pod',
@@ -19,7 +22,7 @@ vim.schedule(function()
       local data = {
         { text = 'cascade:', value = 'background', options = { 'background', 'orphan', 'foreground' }, cmd = '--cascade', type = 'option' },
         { text = 'dry run:', value = 'none', options = { 'none', 'server', 'client' }, cmd = '--dry-run', type = 'option' },
-        { text = 'grade period:', value = '-1', cmd = '--grace-period', type = 'option' },
+        { text = 'grace period:', value = '-1', cmd = '--grace-period', type = 'option' },
         { text = 'timeout:', value = '0s', cmd = '--timeout', type = 'option' },
         { text = 'force:', value = 'false', options = { 'false', 'true' }, cmd = '--force', type = 'flag' },
       }

@@ -65,8 +65,8 @@ local M = {
 }
 
 M.keys = {
-  { '<F5>', '<cmd>lua require("dap").continue()<cr>' },
-  { '<leader>db', '<cmd>lua require("dap").toggle_breakpoint()<cr>' },
+  { '<F5>', '<cmd>lua require("dap").continue()<cr>', desc = 'DAP: Continue' },
+  { '<leader>db', '<cmd>lua require("dap").toggle_breakpoint()<cr>', desc = 'DAP: Toggle Breakpoint' },
 }
 
 M.config = function()
@@ -177,7 +177,9 @@ M.config = function()
   -------------
   -- keymaps --
   -------------
-  local opts = { noremap = true, silent = true, buffer = true }
+  -- global keymaps: `buffer = true` here would bind them only to whichever
+  -- buffer happens to be current when this `M.config` runs once at load time.
+  local opts = { noremap = true, silent = true }
 
   -- Continue / Start
   vim.keymap.set('n', '<leader>dc', function()

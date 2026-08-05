@@ -1,7 +1,14 @@
--- return 7 chars commit hash
+-- return 7 chars commit hash, or nil for an uncommitted/working-tree line
 local function get_commit_hash()
   local line = vim.api.nvim_get_current_line()
-  return string.sub(line, 1, 7)
+  if line:match 'Not Committed Yet' then
+    return nil
+  end
+  local hash = string.sub(line, 1, 7)
+  if hash:match '^0+$' then
+    return nil
+  end
+  return hash
 end
 
 vim.schedule(function()
@@ -17,6 +24,10 @@ vim.schedule(function()
     desc = 'Open Diffview',
     callback = function()
       local commit_hash = get_commit_hash()
+      if not commit_hash then
+        vim.notify('This line has no commit yet', vim.log.levels.WARN)
+        return
+      end
       vim.notify('Opening Diffview for ' .. commit_hash)
       vim.cmd('DiffviewOpen ' .. commit_hash .. '^!')
     end,
@@ -28,6 +39,10 @@ vim.schedule(function()
     desc = 'Copy commit hash',
     callback = function()
       local commit_hash = get_commit_hash()
+      if not commit_hash then
+        vim.notify('This line has no commit yet', vim.log.levels.WARN)
+        return
+      end
       vim.fn.setreg('+', commit_hash)
       vim.notify(commit_hash .. ' copied to clipboard')
     end,
@@ -39,6 +54,10 @@ vim.schedule(function()
     desc = 'Open commit hash in browser',
     callback = function()
       local commit_hash = get_commit_hash()
+      if not commit_hash then
+        vim.notify('This line has no commit yet', vim.log.levels.WARN)
+        return
+      end
       vim.cmd 'wincmd p'
       -- selene: allow(undefined_variable)
       require('bsaada.user.gitbrowse').open {

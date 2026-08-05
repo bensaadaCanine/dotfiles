@@ -13,7 +13,9 @@ return function(bufnr)
   -- GoTo code navigation
   vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, returnOpts 'Go to type definition')
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, returnOpts 'Go to implementation')
-  vim.keymap.set('n', 'gR', vim.lsp.buf.references, returnOpts 'Go to references')
+  vim.keymap.set('n', 'gR', function()
+    vim.lsp.buf.references { includeDeclaration = false }
+  end, returnOpts 'Go to references')
 
   -- Workspace
   vim.keymap.set('n', '<leader>lwa', vim.lsp.buf.add_workspace_folder, returnOpts 'Add workspace folder')
@@ -24,7 +26,7 @@ return function(bufnr)
 
   -- Inlay hints
   vim.keymap.set('n', '<leader>lh', function()
-    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr }, { bufnr = bufnr })
   end, returnOpts 'Toggle inlay hints')
 
   -- Diagnostics

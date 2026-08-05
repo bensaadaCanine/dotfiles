@@ -73,8 +73,8 @@ local M = {
     version = false,
     lazy = false,
     keys = {
-      { '<leader>x', '<cmd>lua require("mini.notify").clear()<cr>', { silent = true, desc = 'Dismiss all notifications' } },
-      { '<leader>n', '<cmd>tabnew|lua require("mini.notify").show_history()<cr>', { silent = true, desc = 'Show notifications history' } },
+      { '<leader>x', '<cmd>lua require("mini.notify").clear()<cr>', silent = true, desc = 'Dismiss all notifications' },
+      { '<leader>n', '<cmd>tabnew|lua require("mini.notify").show_history()<cr>', silent = true, desc = 'Show notifications history' },
     },
     init = function()
       local mnotify = require 'mini.notify'

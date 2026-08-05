@@ -8,6 +8,12 @@ end
 
 local M = {
   'nvim-treesitter/nvim-treesitter',
+  -- Pinned to the legacy `configs`-based API this file uses. The repo's
+  -- default branch is now `main` (the 2024 rewrite), which has no
+  -- `nvim-treesitter.configs` module and breaks `require('nvim-treesitter.configs').setup(opts)`
+  -- below. TODO: migrate to the new `main`-branch API (`require('nvim-treesitter').setup{}`,
+  -- per-buffer `vim.treesitter.start()`, etc.) and drop this pin.
+  branch = 'master',
   build = function()
     pcall(require('nvim-treesitter.install').update { with_sync = true })
   end,

@@ -7,7 +7,10 @@ vim.api.nvim_buf_set_keymap(0, 'n', '<Plug>(kubectl.browse)', '', {
   silent = true,
   desc = 'Copy exec command',
   callback = function()
-    local container_name = tables.getCurrentSelection(unpack { 1 })
+    local container_name = tables.getCurrentSelection(1)
+    if not container_name or not pod_view.selection.pod or not pod_view.selection.ns then
+      return
+    end
     local exec_cmd = string.format('kubectl exec -it %s -n %s -c %s -- /bin/sh', pod_view.selection.pod, pod_view.selection.ns, container_name)
     vim.notify(exec_cmd)
     vim.fn.setreg('+', exec_cmd)

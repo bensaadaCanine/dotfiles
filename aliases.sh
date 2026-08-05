@@ -1,21 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 ### Helper functions ###
 function _alias_parser() {
+  local parsed_alias
   parsed_alias=$(alias -- "$1")
   if [[ $? == 0 ]]; then
     echo $parsed_alias | awk -F\' '{print $2}'
   fi
 }
 function _alias_finder() {
-  # log_file=/tmp/moshe_mwatch.log
-  # echo "Got in _alias_finder with $*" >> $log_file
+  local final_result s alias_val
   final_result=()
   for s in $(echo $1); do
     alias_val=$(_alias_parser "$s")
     if [[ -n $alias_val ]]; then
       # Handle nested aliases with the same name
       if [[ $alias_val == *"$s"* ]]; then
-        # echo "$s is contained in $alias_val" >> $log_file
         final_result+=($alias_val)
       else
         final_result+=($(_alias_finder "$alias_val"))
@@ -25,18 +24,16 @@ function _alias_finder() {
     fi
   done
   echo "${final_result[@]}"
-  # echo "final_result: ${final_result[@]}" >> $log_file
 }
 ### Random functions ###
 function mwatch() {
-  # log_file=/tmp/moshe_mwatch.log
-  # [[ -f $log_file ]] && cat /dev/null > $log_file || touch $log_file
+  local final_alias
   final_alias=$(_alias_finder "$*")
   echo $final_alias
   watch --color "$final_alias"
 }
 function docke() {
-  [[ $1 == "r"* ]] && docker ${1#r}
+  docker "$@"
 }
 
 function ssh2() {
@@ -56,7 +53,8 @@ function opengit() {
 }
 # Create pull request = cpr
 function cpr() {
-  git_remote=$(git remote -v | head -1)
+  local git_remote git_name project_name repo_name branch_name pr_link
+  git_remote=$(git remote -v | grep '^origin' | head -1)
   git_name=$(gsed -E 's?origin\s*(git@|https://)(\w+).*?\2?g' <<<"$git_remote")
   project_name=$(gsed -E "s/.*com[:\/](.*)\/.*/\\1/" <<<"$git_remote")
   repo_name=$(gsed -E -e "s/.*com[:\/].*\/(.*).*/\\1/" -e "s/\.git\s*\((fetch|push)\)//" <<<"$git_remote")
@@ -71,15 +69,16 @@ function cpr() {
 
 ### AWS functions ###
 function gparamsp() {
+  local parameter
   parameter=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq ".[][0].Name" -r)
   aws ssm get-parameter --name $parameter --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
 }
 
 function dparamsp() {
+  local aws_param_temp
   aws_param_temp=$(aws ssm describe-parameters --parameter-filters Key=Name,Values="$1",Option=Contains | jq '.Parameters[].Name' -r | fzf)
   if [ $aws_param_temp ]; then
     aws ssm get-parameter --name $aws_param_temp --profile $AWS_PROFILE --with-decryption | jq ".[]|[.Name,.Value]"
-    aws_param_temp=
   fi
 }
 
@@ -146,7 +145,14 @@ EOF
   echo "AWS_PROFILE=$profile"
 }
 
-complete -W '$(aws_p --list)' aws_p
+# `complete` is a bash-only builtin; without this guard, sourcing this file
+# in zsh before oh-my-zsh's `aws` plugin has run `bashcompinit` (e.g. via
+# .zshenv, or any non-interactive zsh invocation) fails with
+# "command not found: complete".
+if [[ -n $ZSH_VERSION ]]; then
+  autoload -Uz bashcompinit && bashcompinit
+fi
+complete -W '$(aws_p --list)' aws_p 2>/dev/null
 
 function aws_ecr_login() {
   aws ecr get-login-password --region $(aws configure get region --output text) | docker login --username AWS --password-stdin $(aws sts get-caller-identity | jq '.Account' -r).dkr.ecr.$(aws configure get region --output text).amazonaws.com
@@ -215,6 +221,7 @@ function kubedebug() {
     $docker_exe
 }
 function get_pods_of_svc() {
+  local svc_name label_selectors
   svc_name=$1
   shift
   label_selectors=$(kubectl get svc $svc_name $* -ojsonpath="{.spec.selector}" | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" | paste -s -d "," -)
@@ -222,10 +229,11 @@ function get_pods_of_svc() {
 }
 
 function rmpods() {
-  for i in $(kgp G $1 | awk '{print $1}'); do kdelp $i; done
+  for i in $(kgp G "$1" | awk '{print $1}'); do kdelp "$i"; done
 }
 
 argocd_web() {
+  local argocd_ingress ingress_host creds CMDPID
   argocd_ingress=$(kubectl get ingress -n argocd --no-headers -o custom-columns=":metadata.name" | grep argocd-server)
   ingress_host=https://$(kubectl get ingress -n argocd "${argocd_ingress}" -ojson | jq -r '.spec.rules[].host')
   creds=$(kubectl get secret -n argocd argocd-initial-admin-secret -ojson | jq '.data | with_entries(.value |= @base64d)')
@@ -241,12 +249,15 @@ argocd_web() {
     echo "Port forward for svc/argocd-server started on port 8080"
     echo "To kill, run 'kill $CMDPID' or exit the shell"
   fi
-  echo "${creds}"
+  # Don't echo the decoded admin password to stdout/history; just copy it.
   jq -r '.password' <<<"${creds}" | pbcopy
+  echo "Admin password copied to clipboard"
+  unset creds
   open "${ingress_host}"
 }
 
 fdf() {
+  local dir_clean all_files dir_to_enter
   # remove trailing / from $1
   dir_clean=${1%/}
   all_files=$(find $dir_clean/* -maxdepth 0 -type d -print 2>/dev/null)
@@ -261,7 +272,6 @@ alias watch='watch --color '
 alias vim="nvim"
 alias v='nvim'
 alias vi='nvim'
-alias sudoedit="nvim"
 alias sed=gsed
 alias grep=ggrep
 alias sort=gsort
@@ -330,7 +340,6 @@ alias outlook='open -a "Microsoft Outlook"'
 alias slack='open -a "Slack"'
 alias sublime='open -a "Sublime Text"'
 alias zoom='open -a "zoom.us"'
-alias watch='watch '
 alias tgrmtrace="rm -rf aws-provider.tf backend.tf terragrunt_variables.tf versions.tf azure-provider.tf providers-tg-generated.tf .azure .terraform"
 alias tf='terraform'
 alias tg='terragrunt'

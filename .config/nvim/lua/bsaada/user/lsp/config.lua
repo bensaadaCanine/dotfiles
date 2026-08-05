@@ -24,8 +24,13 @@ function M.setup()
   require('bsaada.user.lsp.actions').setup()
   require('vim.lsp.log').set_format_func(vim.inspect)
 
-  M.capabilities =
-    vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), require('cmp_nvim_lsp').default_capabilities(), M.capabilities or {})
+  local ok_cmp_lsp, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
+  M.capabilities = vim.tbl_deep_extend(
+    'force',
+    vim.lsp.protocol.make_client_capabilities(),
+    ok_cmp_lsp and cmp_nvim_lsp.default_capabilities() or {},
+    M.capabilities or {}
+  )
 
   vim.diagnostic.config {
     jump = {
@@ -48,9 +53,11 @@ function M.setup()
     update_in_insert = false,
   }
 
-  require('mason-lspconfig').setup {
-    automatic_installation = true,
-  }
+  -- `automatic_installation` was removed from mason-lspconfig's v2 (`vim.lsp.enable`-based)
+  -- rewrite and is silently ignored; servers are enabled explicitly in `servers.lua` instead.
+  pcall(function()
+    require('mason-lspconfig').setup {}
+  end)
 
   require('bsaada.user.lsp.servers').setup()
 

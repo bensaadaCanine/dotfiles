@@ -1,7 +1,6 @@
 local M = {}
 
 -- Default options
--- Default options
 local default_opts = {
   keymap = {
     search = '<C-f>', -- The keybinding to trigger search
