@@ -83,9 +83,70 @@ function dparamsp() {
   fi
 }
 
-function aws_p() {
-  export AWS_PROFILE=$1
+# --- aws profile switcher --------------------------------------------------
+aws_p() {
+  local profiles profile
+
+  # subcommands that don't need the profile list
+  case $1 in
+  -h | --help)
+    cat <<'EOF'
+usage:
+  aws_p                pick a profile with fzf
+  aws_p NAME           set NAME directly, or filter the picker if partial
+  aws_p off            unset AWS_PROFILE / AWS_REGION
+  aws_p -c, --current  show the active profile
+  aws_p -l, --list     print profile names, one per line
+EOF
+    return 0
+    ;;
+  off)
+    unset AWS_PROFILE AWS_REGION
+    echo "AWS_PROFILE unset"
+    return 0
+    ;;
+  -c | --current)
+    echo "${AWS_PROFILE:-<none>}"
+    return 0
+    ;;
+  esac
+
+  profiles=$(sed -nE 's/^\[profile[[:space:]]+([^]]+)\][[:space:]]*$/\1/p;
+                      s/^\[default\][[:space:]]*$/default/p' ~/.aws/config 2>/dev/null)
+
+  if [[ -z $profiles ]]; then
+    echo "aws_p: no profiles found in ~/.aws/config" >&2
+    return 1
+  fi
+
+  case $1 in
+  -l | --list)
+    printf '%s\n' "$profiles"
+    return 0
+    ;;
+  esac
+
+  if [[ -n $1 ]]; then
+    if grep -qxF -- "$1" <<<"$profiles"; then
+      profile=$1 # exact match, skip fzf entirely
+    else
+      profile=$(fzf --height 40% --reverse --prompt='aws profile> ' \
+        --query="$1" --select-1 --exit-0 <<<"$profiles")
+      if [[ -z $profile ]]; then
+        echo "aws_p: no profile matching '$1'" >&2
+        return 1
+      fi
+    fi
+  else
+    profile=$(fzf --height 40% --reverse --prompt='aws profile> ' <<<"$profiles") || return
+    [[ -z $profile ]] && return
+  fi
+
+  export AWS_PROFILE="$profile"
+  echo "AWS_PROFILE=$profile"
 }
+
+complete -W '$(aws_p --list)' aws_p
 
 function aws_ecr_login() {
   aws ecr get-login-password --region $(aws configure get region --output text) | docker login --username AWS --password-stdin $(aws sts get-caller-identity | jq '.Account' -r).dkr.ecr.$(aws configure get region --output text).amazonaws.com
@@ -96,9 +157,6 @@ function aws_ecr_login() {
 ### Kubernetes functions ###
 function kdpw() {
   watch "kubectl describe po $* | tail -20"
-}
-function kts() {
-  kt $1 -c "spotinst-${1}-container"
 }
 function kgres() {
   kubectl get pod $* \
