@@ -82,6 +82,20 @@ function dparamsp() {
   fi
 }
 
+function gsecretsp() {
+  local secret
+  secret=$(aws secretsmanager list-secrets --filters Key=name,Values="$1" --profile $AWS_PROFILE | jq ".[][0].Name" -r)
+  aws secretsmanager get-secret-value --secret-id $secret --profile $AWS_PROFILE | jq "[.Name,.SecretString]"
+}
+
+function dsecretsp() {
+  local aws_secret_temp
+  aws_secret_temp=$(aws secretsmanager list-secrets --profile $AWS_PROFILE | jq -r '.SecretList[].Name' | grep -E "$1" | fzf)
+  if [ $aws_secret_temp ]; then
+    aws secretsmanager get-secret-value --secret-id $aws_secret_temp --profile $AWS_PROFILE | jq "[.Name,.SecretString]"
+  fi
+}
+
 # --- aws profile switcher --------------------------------------------------
 aws_p() {
   local profiles profile
