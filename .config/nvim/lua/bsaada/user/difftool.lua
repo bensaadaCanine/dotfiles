@@ -226,7 +226,7 @@ function M.setup()
       return
     end
 
-    local left, right = opts.fargs[1], opts.fargs[2]
+    local left, right = vim.fn.expand(opts.fargs[1]), vim.fn.expand(opts.fargs[2])
     local is_dir = vim.fn.isdirectory(left) == 1 and vim.fn.isdirectory(right) == 1
     local is_file = vim.fn.filereadable(left) == 1 and vim.fn.filereadable(right) == 1
 
@@ -237,7 +237,7 @@ function M.setup()
     else
       vim.notify('Both arguments must be files or directories', vim.log.levels.ERROR)
     end
-  end, { nargs = '*', force = true })
+  end, { nargs = '*', force = true, complete = 'file' })
 end
 
 return M

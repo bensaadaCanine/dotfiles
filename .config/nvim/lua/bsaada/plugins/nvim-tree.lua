@@ -19,7 +19,7 @@ local function on_attach(bufnr)
       sort_current = sort_current + 1
     end
     api.tree.reload()
-    require('user.utils').pretty_print('Sort Method: ' .. SORT_METHODS[sort_current])
+    require('bsaada.user.utils').pretty_print('Sort Method: ' .. SORT_METHODS[sort_current])
   end
 
   -- mark operation
@@ -218,9 +218,10 @@ M.config = function()
         local events = require('nvim-tree.api').events
         events.subscribe(events.Event.NodeRenamed, function(data)
           if prev.new_name ~= data.new_name or prev.old_name ~= data.old_name then
-            data = data
-            -- selene: allow(undefined_variable)
-            Snacks.rename.on_rename_file(data.old_name, data.new_name)
+            local ok, snacks = pcall(require, 'snacks')
+            if ok then
+              snacks.rename.on_rename_file(data.old_name, data.new_name)
+            end
           end
         end)
       end,

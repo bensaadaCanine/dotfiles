@@ -23,7 +23,15 @@ M.list_github_tree = function(cb)
   local cmd = vim.iter({ 'curl', '--location', '--silent', '--fail', headers_in_curl_format, url .. '?recursive=1' }):flatten():totable()
   vim.system(cmd, { text = true }, function(data)
     vim.schedule(function()
-      local body = vim.fn.json_decode(data.stdout)
+      if data.code ~= 0 then
+        vim.notify('Failed to fetch CRD schema list: ' .. (data.stderr or ''), vim.log.levels.ERROR)
+        return
+      end
+      local ok, body = pcall(vim.json.decode, data.stdout)
+      if not ok or not body or not body.tree then
+        vim.notify('Failed to parse CRD schema list response', vim.log.levels.ERROR)
+        return
+      end
       for _, tree in ipairs(body.tree) do
         if tree.type == 'blob' and tree.path:match '%.json$' then
           table.insert(trees, tree.path)

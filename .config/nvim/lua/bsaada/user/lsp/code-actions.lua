@@ -20,7 +20,16 @@ M.revision_branch_comment = {
 
       -- check if current line has the substring 'targetRevision: '
       if is_argo_app then
-        local target_revision_line_number = vim.fn.search('targetRevision: ', 'nw')
+        local target_revision_line_number
+        for i, v in ipairs(context.content) do
+          if string.find(v, 'targetRevision: ') then
+            target_revision_line_number = i
+            break
+          end
+        end
+        if not target_revision_line_number then
+          return
+        end
         local target_revision_line = context.content[target_revision_line_number]
         local indent = get_indent(target_revision_line)
 

@@ -2,7 +2,12 @@ local M = {}
 M.actions = function()
   return {
     ['Format (<leader>lp)'] = function()
-      require('bsaada.user.lsp.formatting').format()
+      local ok, conform = pcall(require, 'conform')
+      if ok then
+        conform.format { lsp_format = 'fallback' }
+      else
+        vim.lsp.buf.format { async = true }
+      end
     end,
     ['Code Actions (<leader>la)'] = function()
       vim.lsp.buf.code_action()

@@ -2,17 +2,6 @@ local commands = require 'kubectl.actions.commands'
 local ingress_view = require 'kubectl.views.ingresses'
 local mappings = require 'kubectl.mappings'
 
-local cluster_to_profile = {
-  ['spot-prod'] = 'default',
-  ['spot-prod-bi-billing'] = 'default',
-  ['spot-dev-us-east-2'] = 'dev',
-}
-
-local profile_to_onelogin = {
-  default = 'https://spotinst.onelogin.com/client/apps/select/889121819',
-  dev = 'https://spotinst.onelogin.com/client/apps/select/889121822',
-}
-
 vim.schedule(function()
   vim.api.nvim_buf_set_keymap(0, 'n', '<Plug>(kubectl.ingress_aws)', '', {
     noremap = true,
@@ -34,10 +23,12 @@ vim.schedule(function()
         ingress_dns = string.sub(ingress_dns, 2, -2)
         vim.schedule(function()
           local cluster_name = require('kubectl.state').context['current-context']
-          local aws_profile = os.getenv 'AWS_PROFILE' or cluster_to_profile[cluster_name]
+          -- Resolve the AWS profile from the environment/CLI config instead of a
+          -- hardcoded cluster-name map, so this works for any cluster/account.
+          local aws_profile = os.getenv 'AWS_PROFILE' or 'default'
           local region = os.getenv 'AWS_REGION' or vim.trim(commands.shell_command('aws', { 'configure', 'get', 'region', '--profile', aws_profile }))
           vim.notify(ingress_dns)
-          vim.notify('AWS_PROFILE: ' .. aws_profile .. ' AWS_REGION: ' .. region)
+          vim.notify('cluster: ' .. cluster_name .. ' AWS_PROFILE: ' .. aws_profile .. ' AWS_REGION: ' .. region)
           local aws_cmd = {
             'elbv2',
             'describe-load-balancers',
@@ -63,15 +54,19 @@ vim.schedule(function()
             local lb_url =
               string.format('https://%s.console.aws.amazon.com/ec2/home?region=%s#LoadBalancer:loadBalancerArn=%s;tab=listenersb', region, region, alb_arn)
             vim.schedule(function()
-              vim.ui.select({ 'Yes', 'No' }, { title = 'Open OneLogin before?' }, function(choice)
-                if not choice then
-                  return
-                end
-                if choice == 'No' then
+              -- Optional: set $AWS_SSO_URL to your org's SSO portal to be prompted
+              -- to open it (e.g. to refresh a session) before the AWS console link.
+              local sso_url = os.getenv 'AWS_SSO_URL'
+              if not sso_url then
+                vim.ui.open(lb_url)
+                return
+              end
+              vim.ui.select({ 'Yes', 'No' }, { title = 'Open SSO portal before AWS console?' }, function(choice)
+                if not choice or choice == 'No' then
                   vim.ui.open(lb_url)
                   return
                 end
-                vim.ui.open(profile_to_onelogin[aws_profile])
+                vim.ui.open(sso_url)
                 vim.defer_fn(function()
                   vim.ui.open(lb_url)
                 end, 3000)

@@ -88,7 +88,7 @@ autocmd('TextYankPost', {
   desc = 'Highlight on yank',
   group = buffer_settings,
   callback = function()
-    pcall(vim.highlight.on_yank, { higroup = 'IncSearch', timeout = 200 })
+    pcall(vim.hl.on_yank, { higroup = 'IncSearch', timeout = 200 })
   end,
 })
 
@@ -108,10 +108,10 @@ autocmd('BufReadPost', {
   callback = function(event)
     local exclude = { 'gitcommit' }
     local buf = event.buf
-    if vim.tbl_contains(exclude, vim.bo[buf].filetype) or vim.b[buf].lazyvim_last_loc then
+    if vim.tbl_contains(exclude, vim.bo[buf].filetype) or vim.b[buf].bsaada_last_loc then
       return
     end
-    vim.b[buf].lazyvim_last_loc = true
+    vim.b[buf].bsaada_last_loc = true
     local mark = vim.api.nvim_buf_get_mark(buf, '"')
     local lcount = vim.api.nvim_buf_line_count(buf)
     if mark[1] > 0 and mark[1] <= lcount then
@@ -129,11 +129,6 @@ autocmd({ 'FileType' }, {
 })
 autocmd({ 'FileType' }, {
   group = special_filetypes,
-  pattern = 'javascript',
-  command = 'set iskeyword+=-',
-})
-autocmd({ 'FileType' }, {
-  group = special_filetypes,
   pattern = 'nginx',
   command = 'setlocal iskeyword+=$',
 })
@@ -144,17 +139,25 @@ autocmd({ 'QuickFixCmdPost' }, {
   desc = 'Open location window on location action',
   group = quickfix_au,
   pattern = 'l*',
-  command = 'lopen',
+  callback = function()
+    if not vim.tbl_isempty(vim.fn.getloclist(0)) then
+      vim.cmd 'lopen'
+    end
+  end,
 })
 autocmd({ 'QuickFixCmdPost' }, {
   desc = 'Open quickfix window on quickfix action',
   group = quickfix_au,
   pattern = [[[^l]*]],
-  command = 'copen',
+  callback = function()
+    if not vim.tbl_isempty(vim.fn.getqflist()) then
+      vim.cmd 'copen'
+    end
+  end,
 })
 
 -- autocmd for terminal buffers
-local term_au = augroup 'MosheTerm'
+local term_au = augroup 'TermSettings'
 autocmd({ 'TermOpen' }, {
   group = term_au,
   pattern = '*',
@@ -184,8 +187,12 @@ autocmd('BufWritePost', {
     end
 
     vim.notify 'File made executable'
+    -- mirror `chmod +x`: add the execute bit for owner/group/other without
+    -- touching read/write bits (previous hardcoded 0755 could over-grant
+    -- group/other read+execute on a more restrictive file, e.g. 0600).
+    local exec_bits = tonumber('111', 8)
     ---@diagnostic disable-next-line: undefined-field
-    vim.uv.fs_chmod(filename, bit.bor(fileinfo.mode, 493))
+    vim.uv.fs_chmod(filename, bit.bor(fileinfo.mode, exec_bits))
   end,
   once = false,
 })

@@ -25,8 +25,16 @@ end
 
 local original_vim_print = vim.print
 vim.print = function(...)
-  local str = type(...) == 'table' and vim.inspect(...) or ...
-  original_vim_print(str)
+  local n = select('#', ...)
+  if n == 0 then
+    return original_vim_print()
+  end
+  local parts = {}
+  for i = 1, n do
+    local v = select(i, ...)
+    parts[i] = type(v) == 'table' and vim.inspect(v) or tostring(v)
+  end
+  return original_vim_print(table.concat(parts, ' '))
 end
 
 ---Write a temporary file with specified options

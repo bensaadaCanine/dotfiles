@@ -9,7 +9,6 @@ export ZSH="${HOME}/.oh-my-zsh"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 export PATH="/opt/homebrew/bin:${HOME}/.bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-export NVM_DIR="$HOME/.nvm"
 export KUBECTL_EXTERNAL_DIFF="kdiff"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
@@ -18,7 +17,7 @@ COMPLETION_WAITING_DOTS="false"
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Set Locale
-export LANG=en_US
+export LANG=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 

@@ -5,10 +5,9 @@ if not first_line:match '^#!' then
   local default_shebang = '#!/bin/bash'
   local cursor = vim.api.nvim_win_get_cursor(0)
   vim.api.nvim_buf_set_lines(0, 0, 0, false, { default_shebang })
-  -- Preserve cursor position only if we're not at the first line
-  if cursor[1] > 1 then
-    vim.api.nvim_win_set_cursor(0, { cursor[1] + 1, cursor[2] })
-  end
+  -- Inserting a line above always shifts the cursor's line down by one,
+  -- including when it started on line 1 (a fresh, empty buffer).
+  vim.api.nvim_win_set_cursor(0, { cursor[1] + 1, cursor[2] })
 end
 
 vim.keymap.set('n', 'J', function()

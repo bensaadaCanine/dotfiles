@@ -1,7 +1,7 @@
 return {
   'Ramilito/kubectl.nvim',
   opts = {
-    log_level = vim.log.levels.DEBUG,
+    log_level = vim.log.levels.WARN,
     diff = { bin = 'kdiff' },
     headers = true,
     hints = true,

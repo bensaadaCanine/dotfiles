@@ -2,7 +2,7 @@ local user = os.getenv 'JENKINS_USER_ID' or os.getenv 'JENKINS_USERNAME'
 local password = os.getenv 'JENKINS_PASSWORD'
 local token = os.getenv 'JENKINS_API_TOKEN' or os.getenv 'JENKINS_TOKEN'
 local jenkins_url = os.getenv 'JENKINS_URL' or os.getenv 'JENKINS_HOST'
-local op_jenkins_id = os.getenv 'OP_JENKINS_ID' or 't5ejcfcrjyo243irr2bjy3yqhm'
+local op_jenkins_id = os.getenv 'OP_JENKINS_ID'
 local namespace_id = vim.api.nvim_create_namespace 'jenkinsfile-linter'
 local validated_msg = 'Jenkinsfile successfully validated.'
 -- local unauthorized_msg = 'ERROR 401 Unauthorized'
@@ -88,6 +88,10 @@ local validate_job = vim.schedule_wrap(function(crumb_job)
 end)
 
 local onepass_creds = function()
+  if not op_jenkins_id then
+    vim.notify('OP_JENKINS_ID is not set, skipping 1Password lookup', vim.log.levels.INFO)
+    return false
+  end
   local is_op_exists = vim.fn.executable 'op' == 1
   if not is_op_exists then
     vim.notify('1Password CLI is not installed', vim.log.levels.ERROR)
@@ -118,6 +122,9 @@ local onepass_creds = function()
     end
   end
   jenkins_url = creds.urls[1].href
+  -- Clear a stale/invalid env-provided token so the freshly fetched
+  -- 1Password password (checked via `token or password`) actually gets used.
+  token = nil
   return true
 end
 

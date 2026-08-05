@@ -2,6 +2,39 @@
 local M = {}
 M.autocmd = vim.api.nvim_create_autocmd
 
+math.randomseed(os.time())
+
+-- Extension to use for `tmp_write`/`RunInTerminal` when the filetype name
+-- doesn't match its file extension. Anything not listed falls back to the
+-- filetype name itself.
+M.filetype_to_extension = {
+  python = 'py',
+  javascript = 'js',
+  javascriptreact = 'jsx',
+  typescript = 'ts',
+  typescriptreact = 'tsx',
+  markdown = 'md',
+  yaml = 'yml',
+  terraform = 'tf',
+  ruby = 'rb',
+  rust = 'rs',
+  bash = 'sh',
+}
+
+-- Interpreter/command to run a buffer of a given filetype with `<F3>`/`:RunInTerminal`.
+-- Anything not listed falls back to `bash`.
+M.filetype_to_command = {
+  python = 'python3',
+  javascript = 'node',
+  typescript = 'ts-node',
+  ruby = 'ruby',
+  sh = 'bash',
+  bash = 'bash',
+  zsh = 'zsh',
+  perl = 'perl',
+  php = 'php',
+}
+
 --Creates an augroup while clearing previous
 --- @param name string #The name of the augroup.
 M.augroup = function(name)
@@ -102,7 +135,7 @@ M.get_os_command_output = function(cmd, cwd)
     cwd = vim.fn.getcwd()
   end
   if type(cmd) ~= 'table' then
-    M.pretty_print('cmd has to be a table', vim.log.leger.ERROR, [[🖥️]])
+    M.pretty_print('cmd has to be a table', 'Utils', [[🖥️]], vim.log.levels.ERROR)
     return {}
   end
   local command = table.remove(cmd, 1)
@@ -141,8 +174,7 @@ M.country_os_to_emoji = function(iso)
   local python_file = vim.fn.tempname() .. '.py'
   local python_file_content = [[import sys; print("".join(chr(ord(c) + 127397) for c in sys.argv[1].upper()), end='')]]
   local python_file_handle = io.open(python_file, 'w')
-  if f ~= nil then
-    python_file_handle:close()
+  if python_file_handle == nil then
     return ''
   end
   python_file_handle:write(python_file_content)
@@ -235,8 +267,7 @@ M.random_emoji = function()
     '♨️',
     '💯',
   }
-  math.randomseed(os.time())
-  return emojis[math.random(89)]
+  return emojis[math.random(#emojis)]
 end
 
 M.tbl_get_next = function(tbl, cur)
