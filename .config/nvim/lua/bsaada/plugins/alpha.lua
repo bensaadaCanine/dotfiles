@@ -76,7 +76,7 @@ local function layout()
       button('CTRL i', '󰈢  Recently opened files', '<Cmd>FzfLua oldfiles<CR>'),
       button('CTRL p', '  Find file', '<Cmd>FzfLua files<CR>'),
       button('CTRL o', '  File explorer', '<Cmd>NvimTreeToggle<CR>'),
-      button('SPC wr', '  Restore last session', '<Cmd>SessionRestore<CR>'),
+      button('SPC wr', '  Restore last session', '<Cmd>AutoSession restore<CR>'),
       button('n', '  New file', '<Cmd>ene<CR>'),
       button('p', '󰂖  Plugins', '<Cmd>Lazy<CR>'),
       button('q', '󰅚  Quit', '<Cmd>qa<CR>'),
