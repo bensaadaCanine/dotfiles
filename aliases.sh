@@ -67,6 +67,22 @@ function cpr() {
   open "https://${git_name}.com/${project_name}/${repo_name}/${pr_link}${branch_name}"
 }
 
+function bitbucket_ro() {
+  local tok
+  tok=$(bw get password 'bitbucket-ro-api-token') || {
+    print -u2 "bitbucket_ro: bw failed -- vault locked? run 'bw unlock'"
+    return 1
+  }
+  [[ -n $tok ]] || { print -u2 "bitbucket_ro: got an empty token"; return 1; }
+  # Names the @aashari/mcp-server-atlassian-bitbucket MCP server actually reads.
+  export ATLASSIAN_USER_EMAIL="ben.saada@aquasec.com"
+  export ATLASSIAN_API_TOKEN="$tok"
+  export BITBUCKET_DEFAULT_WORKSPACE="scalock"
+  # Legacy names, kept for anything else that still expects them.
+  export BITBUCKET_USERNAME="$ATLASSIAN_USER_EMAIL"
+  export BITBUCKET_TOKEN="$tok"
+}
+
 ### AWS functions ###
 function gparamsp() {
   local parameter
@@ -310,6 +326,30 @@ alias gp="git push --set-upstream origin HEAD"
 alias gml="git checkout \$(git symbolic-ref refs/remotes/origin/HEAD | tr \"/\" \" \" | awk '{print \$4}') && git pull"
 alias groot="cd \$(git rev-parse --show-toplevel)"
 alias repos="cd ~/repos"
+# run `gml` (checkout default branch + pull) in every git repo under ~/repos
+function gml_all() {
+  local repos_dir="${1:-$HOME/repos}"
+  local repo default_branch failed=()
+  for repo in "$repos_dir"/*/; do
+    repo="${repo%/}"
+    [[ -d "$repo/.git" ]] || continue
+    printf '\n\033[1;34m==> %s\033[0m\n' "${repo##*/}"
+    (
+      cd "$repo" || exit 1
+      default_branch=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+      if [[ -z "$default_branch" ]]; then
+        default_branch=$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')
+      fi
+      [[ -n "$default_branch" ]] || { echo "could not detect default branch"; exit 1; }
+      git checkout "$default_branch" && git pull
+    ) || failed+=("${repo##*/}")
+  done
+  if (( ${#failed[@]} )); then
+    printf '\n\033[1;31mFailed:\033[0m %s\n' "${failed[*]}"
+    return 1
+  fi
+  printf '\n\033[1;32mAll repos updated.\033[0m\n'
+}
 ### Shortcuts to directories ###
 alias difff='code --diff'
 ### Kubernetes Aliases ###

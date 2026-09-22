@@ -138,4 +138,13 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-alias az='~/azenv/bin/az'
+# az is a shell function, not an alias: zsh resolves an alias to its target
+# before looking up completions, which breaks the argcomplete hookup below.
+az() { "${HOME}/azenv/bin/az" "$@"; }
+
+# ---- Azure CLI completion ----
+# az lives in the ~/azenv venv (see function above), so call its argcomplete
+# registrar by absolute path instead of relying on PATH.
+if [[ -x "${HOME}/azenv/bin/register-python-argcomplete" ]]; then
+  eval "$("${HOME}/azenv/bin/register-python-argcomplete" --shell zsh az)"
+fi
