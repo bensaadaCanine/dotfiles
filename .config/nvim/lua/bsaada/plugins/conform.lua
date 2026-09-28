@@ -135,7 +135,13 @@ return {
         ---@diagnostic disable-next-line: redundant-return-value
         notify_format
     end,
-    formatters = {},
+    formatters = {
+      -- Never let the groovy fixer rewrite "..." to '...' (UnnecessaryGString),
+      -- regardless of a repo's own .groovylintrc.json.
+      ['npm-groovy-lint'] = {
+        prepend_args = { '--fixrulesexclude', 'UnnecessaryGString' },
+      },
+    },
   },
   init = function()
     vim.o.formatexpr = "v:lua.require'conform'.formatexpr({timeout_ms=5000})"
