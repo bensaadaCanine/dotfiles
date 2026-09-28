@@ -22,7 +22,6 @@ M.config = function()
       null_ls.builtins.diagnostics.hadolint,
       null_ls.builtins.diagnostics.markdownlint,
       null_ls.builtins.diagnostics.proselint,
-      null_ls.builtins.diagnostics.npm_groovy_lint,
       null_ls.builtins.diagnostics.terragrunt_validate,
       null_ls.builtins.diagnostics.vint,
       null_ls.builtins.diagnostics.selene,

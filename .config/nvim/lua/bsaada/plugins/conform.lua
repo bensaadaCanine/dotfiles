@@ -91,11 +91,9 @@ return {
   opts = {
     log_level = vim.log.levels.WARN,
     formatters_by_ft = {
-      Jenkinsfile = { 'npm-groovy-lint' },
       astro = { 'prettierd' },
       css = { 'prettierd' },
       graphql = { 'prettierd' },
-      groovy = { 'npm-groovy-lint' },
       handlebars = { 'prettierd' },
       hcl = { 'terragrunt_hclfmt' },
       html = { 'prettierd' },
@@ -135,13 +133,7 @@ return {
         ---@diagnostic disable-next-line: redundant-return-value
         notify_format
     end,
-    formatters = {
-      -- Never let the groovy fixer rewrite "..." to '...' (UnnecessaryGString),
-      -- regardless of a repo's own .groovylintrc.json.
-      ['npm-groovy-lint'] = {
-        prepend_args = { '--fixrulesexclude', 'UnnecessaryGString' },
-      },
-    },
+    formatters = {},
   },
   init = function()
     vim.o.formatexpr = "v:lua.require'conform'.formatexpr({timeout_ms=5000})"
