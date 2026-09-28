@@ -282,6 +282,11 @@ local M = {
       require 'diffview'
     end,
   },
+  {
+    'akinsho/git-conflict.nvim',
+    version = '*',
+    config = true,
+  },
 }
 
 return M
