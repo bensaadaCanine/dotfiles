@@ -125,7 +125,12 @@ return {
     default_format_opts = {
       lsp_format = 'fallback',
     },
-    format_on_save = function()
+    -- Formatting on a plain :w is opt-in (globally with :FormatOnSave, per buffer with
+    -- vim.b.format_on_save = true). :W always formats and then writes.
+    format_on_save = function(bufnr)
+      if not (vim.g.format_on_save or vim.b[bufnr].format_on_save) then
+        return
+      end
       return {
         lsp_format = 'fallback',
         timeout_ms = 5000,
@@ -137,5 +142,30 @@ return {
   },
   init = function()
     vim.o.formatexpr = "v:lua.require'conform'.formatexpr({timeout_ms=5000})"
+    vim.g.format_on_save = false
+
+    -- :W = format with the buffer's formatters (same set format-on-save would use), then write
+    vim.api.nvim_create_user_command('W', function()
+      require('conform').format({ async = false, lsp_format = 'fallback', timeout_ms = 5000 }, notify_format)
+      vim.cmd.write()
+    end, { desc = 'Format the buffer, then write it' })
+
+    -- :FormatOnSave [on|off] toggles formatting on plain :w for the session
+    vim.api.nvim_create_user_command('FormatOnSave', function(opts)
+      if opts.args == 'on' then
+        vim.g.format_on_save = true
+      elseif opts.args == 'off' then
+        vim.g.format_on_save = false
+      else
+        vim.g.format_on_save = not vim.g.format_on_save
+      end
+      vim.notify('Format on save: ' .. (vim.g.format_on_save and 'on' or 'off'))
+    end, {
+      nargs = '?',
+      complete = function()
+        return { 'on', 'off' }
+      end,
+      desc = 'Toggle formatting on :w (use :W to format and write explicitly)',
+    })
   end,
 }
