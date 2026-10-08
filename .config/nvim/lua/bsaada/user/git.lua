@@ -152,7 +152,8 @@ M.create_pull_request = function()
     end
 
     local host, project, repo
-    if git_remote_url:match '^git@' then
+    local is_ssh = git_remote_url:match '^git@' ~= nil
+    if is_ssh then
       host, project, repo = git_remote_url:match '^git@([^:]+):(.+)/(.+)%.git'
     else -- assuming https
       host, project, repo = git_remote_url:match '^https://([^/]+)/(.+)/(.+)%.git'
@@ -163,31 +164,46 @@ M.create_pull_request = function()
       return
     end
 
-    -- Extract git_name from host (e.g., 'github' from 'github.com-emu' or 'gitlab' from 'gitlab.com')
-    local git_name = host:match '^(%w+)'
+    local function open_pr(web_host)
+      if web_host == 'github.com-emu' then
+        web_host = 'github.com'
+      end
 
-    if not git_name then
-      M.prnt(('Could not determine git provider from host: %s'):format(host), true)
-      return
-    end
+      -- Extract git_name from the web host (e.g., 'github' from 'github.com' or 'gitlab' from 'gitlab.com')
+      local git_name = web_host:match '^(%w+)'
 
-    local pr_link = git_name == 'gitlab' and '-/merge_requests/new?merge_request[source_branch]='
-      or git_name == 'bitbucket' and 'pull-requests/new?source='
-      or 'pull/new/'
-
-    -- Determine the web URL for the git host
-    local web_host = host
-    if host == 'github.com-emu' then
-      web_host = 'github.com'
-    end
-
-    M.get_branch(function(branch_name)
-      if not branch_name or branch_name == '' then
-        M.prnt('Could not get current branch', true)
+      if not git_name then
+        M.prnt(('Could not determine git provider from host: %s'):format(web_host), true)
         return
       end
-      local url = ('https://%s/%s/%s/%s%s'):format(web_host, project, repo, pr_link, branch_name)
-      vim.ui.open(url)
+
+      local pr_link = git_name == 'gitlab' and '-/merge_requests/new?merge_request[source_branch]='
+        or git_name == 'bitbucket' and 'pull-requests/new?source='
+        or 'pull/new/'
+
+      M.get_branch(function(branch_name)
+        if not branch_name or branch_name == '' then
+          M.prnt('Could not get current branch', true)
+          return
+        end
+        local url = ('https://%s/%s/%s/%s%s'):format(web_host, project, repo, pr_link, branch_name)
+        vim.ui.open(url)
+      end)
+    end
+
+    if not is_ssh then
+      return open_pr(host)
+    end
+
+    -- ssh-config host aliases (github.com-emu, github-personal, ...) map back to the real host via `ssh -G`.
+    -- Async: we're already inside a vim.system callback, so a blocking :wait() is not allowed here.
+    vim.system({ 'ssh', '-G', host }, { text = true }, function(obj)
+      local resolved
+      if obj.code == 0 and obj.stdout then
+        resolved = obj.stdout:match '\nhostname ([^\n]+)' or obj.stdout:match '^hostname ([^\n]+)'
+      end
+      resolved = resolved and vim.trim(resolved)
+      open_pr(resolved ~= nil and resolved ~= '' and resolved or host)
     end)
   end)
 end

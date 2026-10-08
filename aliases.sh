@@ -51,20 +51,57 @@ function grl() {
 function opengit() {
   git remote -v | awk 'NR==1{print $2}' | sed -e "s?:?/?g" -e 's?\.git$??' -e "s?git@?https://?" -e "s?https///?https://?g" | xargs open
 }
-# Create pull request = cpr
+# Create pull request = cpr (same logic as <leader>PR / :Cpr in nvim)
 function cpr() {
-  local git_remote git_name project_name repo_name branch_name pr_link
-  git_remote=$(git remote -v | grep '^origin' | head -1)
-  git_name=$(gsed -E 's?origin\s*(git@|https://)(\w+).*?\2?g' <<<"$git_remote")
-  project_name=$(gsed -E "s/.*com[:\/](.*)\/.*/\\1/" <<<"$git_remote")
-  repo_name=$(gsed -E -e "s/.*com[:\/].*\/(.*).*/\\1/" -e "s/\.git\s*\((fetch|push)\)//" <<<"$git_remote")
-  branch_name=$(git branch --show-current)
-  if [[ $git_name == "gitlab" ]]; then
-    pr_link="-/merge_requests/new?merge_request[source_branch]="
-  else
-    pr_link="/pull/new/"
+  local remote_url host project_repo project repo git_name web_host pr_link branch_name
+  remote_url=$(git remote get-url origin 2>/dev/null)
+  if [[ -z $remote_url ]]; then
+    print -u2 "cpr: could not find remote 'origin'"
+    return 1
   fi
-  open "https://${git_name}.com/${project_name}/${repo_name}/${pr_link}${branch_name}"
+  if [[ $remote_url == git@* ]]; then
+    # git@host:project/repo.git
+    host=${remote_url#git@}
+    host=${host%%:*}
+    project_repo=${remote_url#*:}
+  elif [[ $remote_url == https://* ]]; then
+    # https://host/project/repo.git
+    host=${remote_url#https://}
+    host=${host%%/*}
+    project_repo=${remote_url#https://*/}
+  else
+    print -u2 "cpr: could not parse git remote URL: $remote_url"
+    return 1
+  fi
+  project_repo=${project_repo%.git}
+  project=${project_repo%/*}
+  repo=${project_repo##*/}
+  if [[ -z $host || -z $project || -z $repo || $project == "$project_repo" ]]; then
+    print -u2 "cpr: could not parse git remote URL: $remote_url"
+    return 1
+  fi
+  # ssh-config host aliases (github.com-emu, github-personal, ...) map back to the real web host
+  web_host=$host
+  if [[ $remote_url == git@* ]]; then
+    web_host=$(ssh -G "$host" 2>/dev/null | awk '/^hostname /{print $2; exit}')
+    [[ -n $web_host ]] || web_host=$host
+  fi
+  if [[ $web_host == "github.com-emu" ]]; then
+    web_host="github.com"
+  fi
+  # git provider from host, e.g. 'github' from 'github.com' or 'gitlab' from 'gitlab.com'
+  git_name=${web_host%%[^[:alnum:]]*}
+  case $git_name in
+  gitlab) pr_link="-/merge_requests/new?merge_request[source_branch]=" ;;
+  bitbucket) pr_link="pull-requests/new?source=" ;;
+  *) pr_link="pull/new/" ;;
+  esac
+  branch_name=$(git branch --show-current)
+  if [[ -z $branch_name ]]; then
+    print -u2 "cpr: could not get current branch"
+    return 1
+  fi
+  open "https://${web_host}/${project}/${repo}/${pr_link}${branch_name}"
 }
 
 function bitbucket_ro() {
