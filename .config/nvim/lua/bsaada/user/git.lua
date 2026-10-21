@@ -263,7 +263,7 @@ M.enter_wip = function()
       '%s %swork in progress %s',
       utils.random_emoji(),
       ticket and ticket ~= '' and ticket .. ' ' or '',
-      vim.fn.strftime '%c'
+      os.date '%c'
     )
     run_git({ 'commit', '--quiet', '-m', msg }, 'Committing: ' .. msg, M.push)
   end
