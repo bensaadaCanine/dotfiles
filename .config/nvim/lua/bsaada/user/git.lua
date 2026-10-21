@@ -251,9 +251,37 @@ M.first_commit = function()
   end)
 end
 
+-- Extracts the Jira ticket that follows '--' in a branch name, e.g. feat/foo--abc-123 -> ABC-123.
+M.ticket_from_branch = function(branch)
+  local ticket = branch and string.match(branch, '%-%-(%a[%a%d]*%-%d+)')
+  return ticket and string.upper(ticket) or nil
+end
+
 M.enter_wip = function()
-  local msg = string.format('%s work in progress %s', utils.random_emoji(), vim.fn.strftime '%c')
-  run_git({ 'commit', '--quiet', '-m', msg }, 'Committing: ' .. msg, M.push)
+  local function commit(ticket)
+    local msg = string.format(
+      '%s %swork in progress %s',
+      utils.random_emoji(),
+      ticket and ticket ~= '' and ticket .. ' ' or '',
+      vim.fn.strftime '%c'
+    )
+    run_git({ 'commit', '--quiet', '-m', msg }, 'Committing: ' .. msg, M.push)
+  end
+
+  M.get_branch(function(branch)
+    local ticket = M.ticket_from_branch(branch)
+    if ticket then
+      return commit(ticket)
+    end
+    vim.schedule(function()
+      vim.ui.input({ prompt = 'No ticket in branch. Enter ticket (blank to skip)❯ ' }, function(input)
+        if not input then
+          return M.prnt 'Canceled.'
+        end
+        commit(vim.trim(input))
+      end)
+    end)
+  end)
 end
 
 ---------------
