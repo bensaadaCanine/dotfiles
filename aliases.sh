@@ -229,7 +229,7 @@ function aws_ecr_login() {
 
 ### Kubernetes functions ###
 function ctx_clean() {
-  for i in $(ctx);do echo "$i";if [[ "$i" == "ucp"* || "$i" == "arn:"* ]];then k config delete-cluster $i && k config delete-context $i;fi ;done
+  for i in $(kubectx);do echo "$i";if [[ "$i" == "ucp"* || "$i" == "arn:"* ]];then kubectl config delete-cluster $i && kubectl config delete-context $i;fi ;done
 }
 function kdpw() {
   watch "kubectl describe po $* | tail -20"
